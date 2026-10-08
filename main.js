@@ -37,8 +37,13 @@ async function ladeFragen(spiel) {
                                           document.getElementById("spielfeld").innerHTML =
                                                 "<h2>Fertig! Du hast " + punkte + " Punkte.</h2>";
                                                   } else {
-                                                      starteRunde();
+                                                      starteRunde().catch(zeigeFehler);
                                                         }
                                                         }
 
-                                                        starteRunde();
+                                                        // Zeigt eine Fehlermeldung auf der Seite an
+                                                        function zeigeFehler(fehler) {
+                                                          document.getElementById("spielfeld").textContent = "Fehler: " + fehler.message;
+                                                          }
+
+                                                          starteRunde().catch(zeigeFehler);
