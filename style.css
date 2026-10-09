@@ -9,7 +9,7 @@ body {
 
 /* Nur der Bildschirm mit der Klasse "aktiv" ist sichtbar */
 .bildschirm { display: none; max-width: 520px; margin: 0 auto; }
-.bildschirm.aktiv { display: block; }
+.bildschirm.aktiv { display: block; animation: einblenden 0.3s ease-out; }
 
 .karte {
   background: #2c2842;
@@ -28,7 +28,15 @@ button, input[type="text"], input[type="email"], input[type="password"] {
   border: none;
 }
 
-button { background: #7c5cff; color: white; cursor: pointer; }
+button {
+  background: #7c5cff;
+  color: white;
+  cursor: pointer;
+  /* weicher Übergang für die Klick-Animation */
+  transition: transform 0.1s, filter 0.1s;
+}
+/* Beim Drücken wird der Knopf kurz kleiner und heller */
+button:active { transform: scale(0.94); filter: brightness(1.2); }
 button.zweitrangig { background: #48426a; }
 button:disabled { opacity: 0.5; }
 
@@ -50,3 +58,25 @@ button:disabled { opacity: 0.5; }
 input[type="range"] { width: 100%; }
 
 .hinweis { color: #b8b2d6; font-size: 15px; }
+
+/* Timer-Balken über der Frage */
+#timer { display: none; height: 10px; background: #48426a; border-radius: 5px; overflow: hidden; }
+#timer-balken { height: 100%; width: 100%; background: #4cd38a; transition: background 0.3s; }
+#timer-balken.knapp { background: #ff5c7a; }
+#timer-zahl { margin: 6px 0; color: #b8b2d6; }
+
+/* Neue Fragen und Antwort-Knöpfe gleiten von unten herein */
+#spielfeld > * { animation: hereingleiten 0.3s ease-out backwards; }
+#spielfeld > :nth-child(2) { animation-delay: 0.05s; }
+#spielfeld > :nth-child(3) { animation-delay: 0.1s; }
+#spielfeld > :nth-child(4) { animation-delay: 0.15s; }
+#spielfeld > :nth-child(5) { animation-delay: 0.2s; }
+
+@keyframes einblenden {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes hereingleiten {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}

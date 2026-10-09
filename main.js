@@ -107,7 +107,53 @@ function zeigeFrage() {
   const frage = spielstand.rundenFragen[spielstand.frageNummer];
   spielstand.benutzteFragen.add(frage.id);
   aktualisiereInfo();
-  spielstand.spiel.zeige(frage, document.getElementById("spielfeld"), frageBeantwortet);
+
+  // Jede Frage darf nur einmal zählen: entweder Antwort oder Zeit abgelaufen
+  let schonBeantwortet = false;
+  function fertig(erreichtePunkte) {
+    if (schonBeantwortet) {
+      return;
+    }
+    schonBeantwortet = true;
+    stoppeTimer();
+    frageBeantwortet(erreichtePunkte);
+  }
+
+  spielstand.spiel.zeige(frage, document.getElementById("spielfeld"), fertig);
+  starteTimer(spielstand.einstellungen.sekunden, function () { fertig(0); });
+}
+
+let timerId = null;
+
+// Zählt die Sekunden herunter und ruft "zeitAbgelaufen" auf, wenn die Zeit um ist
+function starteTimer(sekunden, zeitAbgelaufen) {
+  stoppeTimer();
+  const ende = Date.now() + sekunden * 1000;
+  const balken = document.getElementById("timer-balken");
+  const zahl = document.getElementById("timer-zahl");
+  document.getElementById("timer").style.display = "block";
+
+  function aktualisiere() {
+    const rest = Math.max(0, ende - Date.now());
+    balken.style.width = (rest / (sekunden * 1000) * 100) + "%";
+    // Die letzten 5 Sekunden wird der Balken rot
+    balken.classList.toggle("knapp", rest <= 5000);
+    zahl.textContent = Math.ceil(rest / 1000) + " s";
+    if (rest === 0) {
+      stoppeTimer();
+      zeitAbgelaufen();
+    }
+  }
+  aktualisiere();
+  timerId = setInterval(aktualisiere, 100);
+}
+
+// Hält den Timer an und versteckt ihn
+function stoppeTimer() {
+  clearInterval(timerId);
+  timerId = null;
+  document.getElementById("timer").style.display = "none";
+  document.getElementById("timer-zahl").textContent = "";
 }
 
 // Zeigt oben an, in welcher Runde und bei welcher Frage man ist
@@ -195,6 +241,7 @@ function zeigeErgebnis() {
 
 // Zeigt eine Fehlermeldung auf der Seite an
 function zeigeFehler(fehler) {
+  stoppeTimer();
   zeigeBildschirm("spiel");
   document.getElementById("spielfeld").textContent = "Fehler: " + fehler.message;
 }
