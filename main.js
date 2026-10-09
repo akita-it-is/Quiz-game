@@ -107,7 +107,74 @@ function zeigeFrage() {
   const frage = spielstand.rundenFragen[spielstand.frageNummer];
   spielstand.benutzteFragen.add(frage.id);
   aktualisiereInfo();
-  spielstand.spiel.zeige(frage, document.getElementById("spielfeld"), frageBeantwortet);
+
+  // Jede Frage darf nur einmal zählen: entweder Antwort oder Zeit abgelaufen
+  let schonBeantwortet = false;
+  function fertig(erreichtePunkte) {
+    if (schonBeantwortet) {
+      return;
+    }
+    schonBeantwortet = true;
+    stoppeTimer();
+    frageBeantwortet(erreichtePunkte);
+  }
+
+  spielstand.spiel.zeige(frage, document.getElementById("spielfeld"), fertig);
+  // Zeit abgelaufen: richtige Antwort zeigen, 0 Punkte
+  starteTimer(spielstand.einstellungen.sekunden, function () { auswerten(null, fertig); });
+}
+
+// Färbt die Knöpfe nach einer Antwort: richtige Antwort grün, falsch gewählte rot.
+// Nach einer kurzen Pause geht es mit der nächsten Frage weiter.
+// "gewaehlterKnopf" ist null, wenn die Zeit abgelaufen ist.
+function auswerten(gewaehlterKnopf, fertig) {
+  stoppeTimer();
+  const spielfeld = document.getElementById("spielfeld");
+  spielfeld.querySelectorAll("button").forEach(function (k) { k.disabled = true; });
+
+  const richtigerKnopf = spielfeld.querySelector("[data-richtig]");
+  if (richtigerKnopf) {
+    richtigerKnopf.classList.add("richtig");
+  }
+  const istRichtig = gewaehlterKnopf !== null && gewaehlterKnopf === richtigerKnopf;
+  if (gewaehlterKnopf && !istRichtig) {
+    gewaehlterKnopf.classList.add("falsch");
+  }
+
+  setTimeout(function () { fertig(istRichtig ? 1 : 0); }, 1200);
+}
+
+let timerId = null;
+
+// Zählt die Sekunden herunter und ruft "zeitAbgelaufen" auf, wenn die Zeit um ist
+function starteTimer(sekunden, zeitAbgelaufen) {
+  stoppeTimer();
+  const ende = Date.now() + sekunden * 1000;
+  const balken = document.getElementById("timer-balken");
+  const zahl = document.getElementById("timer-zahl");
+  document.getElementById("timer").style.display = "block";
+
+  function aktualisiere() {
+    const rest = Math.max(0, ende - Date.now());
+    balken.style.width = (rest / (sekunden * 1000) * 100) + "%";
+    // Die letzten 5 Sekunden wird der Balken rot
+    balken.classList.toggle("knapp", rest <= 5000);
+    zahl.textContent = Math.ceil(rest / 1000) + " s";
+    if (rest === 0) {
+      stoppeTimer();
+      zeitAbgelaufen();
+    }
+  }
+  aktualisiere();
+  timerId = setInterval(aktualisiere, 100);
+}
+
+// Hält den Timer an und versteckt ihn
+function stoppeTimer() {
+  clearInterval(timerId);
+  timerId = null;
+  document.getElementById("timer").style.display = "none";
+  document.getElementById("timer-zahl").textContent = "";
 }
 
 // Zeigt oben an, in welcher Runde und bei welcher Frage man ist
@@ -195,6 +262,7 @@ function zeigeErgebnis() {
 
 // Zeigt eine Fehlermeldung auf der Seite an
 function zeigeFehler(fehler) {
+  stoppeTimer();
   zeigeBildschirm("spiel");
   document.getElementById("spielfeld").textContent = "Fehler: " + fehler.message;
 }

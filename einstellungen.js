@@ -46,6 +46,7 @@ function leseEinstellungen() {
   return {
     modus: document.querySelector("input[name='modus']:checked").value,
     anzahl: Number(document.getElementById("anzahl").value),
+    sekunden: Number(document.getElementById("zeit").value),
     kategorien: kategorien
   };
 }
@@ -53,4 +54,7 @@ function leseEinstellungen() {
 // Schieberegler: Zahl daneben sofort anpassen
 document.getElementById("anzahl").oninput = function () {
   document.getElementById("anzahl-anzeige").textContent = this.value;
+};
+document.getElementById("zeit").oninput = function () {
+  document.getElementById("zeit-anzeige").textContent = this.value;
 };

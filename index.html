@@ -49,6 +49,10 @@
       <p>Anzahl: <strong id="anzahl-anzeige">5</strong></p>
       <input id="anzahl" type="range" min="3" max="10" value="5">
 
+      <h3>Zeit pro Frage</h3>
+      <p><strong id="zeit-anzeige">20</strong> Sekunden</p>
+      <input id="zeit" type="range" min="10" max="60" step="5" value="20">
+
       <h3>Kategorien</h3>
       <div id="kategorien">Kategorien werden geladen …</div>
 
@@ -62,6 +66,8 @@
   <section id="spiel" class="bildschirm">
     <p id="spiel-info"></p>
     <p id="punkte">Punkte: 0</p>
+    <div id="timer"><div id="timer-balken"></div></div>
+    <p id="timer-zahl"></p>
     <div id="spielfeld"></div>
   </section>
 
