@@ -157,7 +157,6 @@ function auswerten(gewaehlterKnopf, fertig) {
   const frage = spielstand.rundenFragen[spielstand.frageNummer];
   spielstand.verlauf.push({
     text: frage.text,
-    richtigeAntwort: richtigerKnopf ? richtigerKnopf.textContent : "",
     richtig: istRichtig,
     info: frage.info
   });
@@ -173,7 +172,7 @@ function auswerten(gewaehlterKnopf, fertig) {
     const box = document.createElement("div");
     box.className = "infobox";
     const titel = document.createElement("strong");
-    titel.textContent = "💡 Wusstest du?";
+    titel.textContent = "Infobox";
     const text = document.createElement("p");
     text.textContent = frage.info;
     box.appendChild(titel);
@@ -352,7 +351,7 @@ function zeigeTreppchen(spieler) {
   });
 }
 
-// Liste aller Fragen des Spiels. Mit ⓘ klappt man Antwort und Extra-Fakt auf.
+// Liste aller Fragen des Spiels. Mit ⓘ klappt man die Infobox auf (nur wenn es eine gibt).
 function zeigeRueckblick(verlauf) {
   const liste = document.getElementById("rueckblick");
   liste.innerHTML = "";
@@ -362,19 +361,19 @@ function zeigeRueckblick(verlauf) {
 
     const zeile = document.createElement("summary");
     zeile.textContent = (nummer + 1) + ". " + (eintrag.richtig ? "✅ " : "❌ ") + eintrag.text;
-    const symbol = document.createElement("span");
-    symbol.className = "info-symbol";
-    symbol.textContent = "ⓘ";
-    zeile.appendChild(symbol);
     details.appendChild(zeile);
 
-    const antwort = document.createElement("p");
-    antwort.textContent = "Richtige Antwort: " + eintrag.richtigeAntwort;
-    details.appendChild(antwort);
     if (eintrag.info) {
+      const symbol = document.createElement("span");
+      symbol.className = "info-symbol";
+      symbol.textContent = "ⓘ";
+      zeile.appendChild(symbol);
       const info = document.createElement("p");
-      info.textContent = "💡 " + eintrag.info;
+      info.textContent = eintrag.info;
       details.appendChild(info);
+    } else {
+      // Ohne Infobox gibt es nichts zum Aufklappen
+      zeile.onclick = function (e) { e.preventDefault(); };
     }
     liste.appendChild(details);
   });
