@@ -4,7 +4,7 @@
 // zurueck: Name eines Bildschirms, eine Funktion, die ihn ausrechnet, oder fehlt (= kein Zurück)
 const KOPF = {
   start:               { titel: "Quiz" },
-  charakter:           { titel: "Dein Charakter", zurueck: function () { return charakterZurueckZu === "inventar" ? "inventar" : null; } },
+  charakter:           { titel: "Charaktere", zurueck: function () { return charakterZurueckZu === "inventar" ? "inventar" : null; } },
   home:                { titel: "Quiz" },
   profil:              { titel: "Profil", zurueck: "home" },
   "app-einstellungen": { titel: "Einstellungen", zurueck: "profil" },

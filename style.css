@@ -231,6 +231,36 @@ button.bp-feld.abgeholt { opacity: 0.6; }
 .fusszeile { margin-top: 30px; font-size: 14px; color: #b8b2d6; }
 .fusszeile a { color: #b8b2d6; }
 
+/* ===== Tier-Charaktere ===== */
+/* Das Bild ist 1em groß – die Größe kommt also von der Schriftgröße des Kästchens drumherum */
+.avatar { width: 1em; height: 1em; border-radius: 50%; border: 0.05em solid transparent; box-sizing: border-box;
+  display: flex; align-items: center; justify-content: center; position: relative; margin: 0 auto; }
+.avatar-tier { font-size: 0.6em; line-height: 1; }
+.avatar-tier img { width: 1.4em; height: 1.4em; object-fit: contain; }
+.avatar-extra { position: absolute; top: -0.02em; right: -0.02em; font-size: 0.28em; }
+.figur-gross { font-size: 130px; }
+button.profilbild { font-size: 58px; border: none; background: none; }
+.spieler-bild { font-size: 40px; overflow: visible; background: none; }
+.karten-bild { font-size: 64px; margin-bottom: 4px; }
+.charakter-vorschau { display: flex; gap: 14px; align-items: center; text-align: left; margin: 10px 0; }
+.charakter-vorschau .figur-gross { flex: 0 0 auto; }
+.charakter-infos small { display: block; color: #b8b2d6; margin: 2px 0 6px; }
+.charakter-infos p { margin: 0; }
+.charakter-gitter { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+button.charakter-karte { margin: 0; padding: 8px 4px; background: #48426a; border: 3px solid transparent; }
+button.charakter-karte .karten-bild { font-size: 52px; }
+button.charakter-karte small { display: block; font-size: 12px; line-height: 1.2; }
+button.charakter-karte.gewaehlt { border-color: #f5c542; background: #5a4f8a; }
+button.charakter-karte.gesperrt { opacity: 0.45; filter: grayscale(0.8); }
+.shop-karte.gekauft { opacity: 0.6; }
+.shop-detail .detail-bild { font-size: 150px; }
+.shop-detail .sammel-bild.detail-bild { font-size: 90px; height: auto; }
+.detail-text { font-style: italic; font-size: 18px; }
+@media (max-width: 420px) {
+  .charakter-gitter { grid-template-columns: repeat(3, 1fr); }
+  .figur-gross { font-size: 100px; }
+}
+
 /* Erfolge-Liste */
 .erfolg-eintrag { background: #48426a; border-radius: 12px; padding: 12px 14px; margin: 8px 0; text-align: left; opacity: 0.75; }
 .erfolg-eintrag.geschafft { opacity: 1; border-left: 5px solid #2fb36d; }
