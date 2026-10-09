@@ -39,6 +39,22 @@ function aktiveSpiele() {
   return Object.values(spiele).filter(function (s) { return s.fragenQuelle; });
 }
 
+// Liest eine Zahl aus einem Text, auch in deutscher Schreibweise:
+// "1.000" wird zu 1000, "3,5" wird zu 3.5. Kommt keine Zahl heraus, ist das Ergebnis NaN.
+function leseZahl(text) {
+  let s = String(text || "").replace(/\s/g, "");
+  if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) {
+    s = s.replace(/\./g, "");
+  }
+  s = s.replace(",", ".");
+  return s === "" ? NaN : Number(s);
+}
+
+// Schreibt eine Zahl schön lesbar, z. B. 1000000 als "1.000.000"
+function zahlText(zahl) {
+  return zahl.toLocaleString("de-DE");
+}
+
 // Mischt eine Liste zufällig durch
 function mische(liste) {
   const kopie = liste.slice();
@@ -101,6 +117,7 @@ async function naechsteRunde() {
   spielstand.rundenFragen = rundenFragen;
   spielstand.frageNummer = 0;
   spielstand.rundenPunkte = 0;
+  spielstand.rundenMaxPunkte = 0;
 
   zeigeFrage();
 }
@@ -122,18 +139,26 @@ function zeigeFrage() {
     frageBeantwortet(erreichtePunkte);
   }
 
-  spielstand.spiel.zeige(frage, document.getElementById("spielfeld"), fertig);
-  // Zeit abgelaufen: richtige Antwort zeigen, 0 Punkte
-  starteTimer(spielstand.einstellungen.sekunden, function () { auswerten(null, fertig); });
+  // Eine Spielart kann eine eigene Funktion für "Zeit abgelaufen" zurückgeben
+  // (z. B. Schätzfrage: das bisher Eingetippte trotzdem werten)
+  const beiZeitAblauf = spielstand.spiel.zeige(frage, document.getElementById("spielfeld"), fertig);
+  // Manche Spielarten haben eine feste Zeit (z. B. Kärtchen: immer 60 Sekunden)
+  const sekunden = spielstand.spiel.festeZeit || spielstand.einstellungen.sekunden;
+  starteTimer(sekunden, function () {
+    if (typeof beiZeitAblauf === "function") {
+      beiZeitAblauf();
+    } else {
+      // Standard: richtige Antwort zeigen, 0 Punkte
+      auswerten(null, fertig);
+    }
+  });
 }
 
 // Färbt die Knöpfe nach einer Antwort: richtige Antwort grün, falsch gewählte rot.
 // Der Timer bleibt stehen, nach einer Pause blendet die Frage weich aus.
 // "gewaehlterKnopf" ist null, wenn die Zeit abgelaufen ist.
 function auswerten(gewaehlterKnopf, fertig) {
-  pausiereTimer();
   const spielfeld = document.getElementById("spielfeld");
-  spielfeld.querySelectorAll("button").forEach(function (k) { k.disabled = true; });
 
   const richtigerKnopf = spielfeld.querySelector("[data-richtig]");
   if (richtigerKnopf) {
@@ -144,31 +169,43 @@ function auswerten(gewaehlterKnopf, fertig) {
     gewaehlterKnopf.classList.add("falsch");
   }
 
+  abschliessen(istRichtig ? 1 : 0, 1, fertig);
+}
+
+// Wird nach jeder Antwort aufgerufen (von allen Spielarten):
+// Timer anhalten, Punkte zeigen, Infobox zeigen und dann zur nächsten Frage.
+// "maxPunkte" = so viele Punkte hätte man bei dieser Frage höchstens bekommen können.
+function abschliessen(punkte, maxPunkte, fertig) {
+  pausiereTimer();
+  const spielfeld = document.getElementById("spielfeld");
+  spielfeld.querySelectorAll("button, input").forEach(function (k) { k.disabled = true; });
+  spielstand.rundenMaxPunkte = spielstand.rundenMaxPunkte + maxPunkte;
+
   // Punkte sofort hochzählen (mit kleinem Hüpfer)
-  if (istRichtig) {
-    const punkte = document.getElementById("punkte");
-    punkte.textContent = "Punkte: " + (spielstand.punkte + 1);
-    punkte.classList.remove("hochzaehlen");
-    void punkte.offsetWidth; // startet die Animation neu
-    punkte.classList.add("hochzaehlen");
+  if (punkte > 0) {
+    const anzeige = document.getElementById("punkte");
+    anzeige.textContent = "Punkte: " + (spielstand.punkte + punkte) + "  (+" + punkte + ")";
+    anzeige.classList.remove("hochzaehlen");
+    void anzeige.offsetWidth; // startet die Animation neu
+    anzeige.classList.add("hochzaehlen");
   }
 
   // Frage für den Endbildschirm merken
   const frage = spielstand.rundenFragen[spielstand.frageNummer];
   spielstand.verlauf.push({
     text: frage.text,
-    richtig: istRichtig,
+    punkte: punkte,
+    maxPunkte: maxPunkte,
     info: frage.info
   });
 
   // Blendet die Frage aus und geht zur nächsten
   function weiter() {
     spielfeld.classList.add("ausblenden");
-    setTimeout(function () { fertig(istRichtig ? 1 : 0); }, 300);
+    setTimeout(function () { fertig(punkte); }, 300);
   }
 
   if (frage.info) {
-    // Mit Extra-Fakt: Infobox zeigen, weiter geht es per Knopf
     const box = document.createElement("div");
     box.className = "infobox";
     const titel = document.createElement("strong");
@@ -178,7 +215,10 @@ function auswerten(gewaehlterKnopf, fertig) {
     box.appendChild(titel);
     box.appendChild(text);
     spielfeld.appendChild(box);
+  }
 
+  if (frage.info && !spielstand.einstellungen.mehrspieler) {
+    // Allein mit Infobox: weiter geht es per Knopf, damit man in Ruhe lesen kann
     const knopf = document.createElement("button");
     knopf.className = "weiter";
     knopf.textContent = "Weiter";
@@ -188,8 +228,8 @@ function auswerten(gewaehlterKnopf, fertig) {
     };
     spielfeld.appendChild(knopf);
   } else {
-    // Ohne Extra-Fakt: nach 1,5 Sekunden automatisch weiter
-    setTimeout(weiter, 1500);
+    // Ohne Infobox oder im Mehrspieler-Modus: automatisch weiter
+    setTimeout(weiter, frage.info ? 2000 : 1500);
   }
 }
 
@@ -265,11 +305,11 @@ function frageBeantwortet(erreichtePunkte) {
 // Zeigt das Ergebnis der Runde und entscheidet, ob das Spiel weitergeht
 function rundeVorbei() {
   const e = spielstand.einstellungen;
-  const anzahlFragen = spielstand.rundenFragen.length;
+  const maxPunkte = spielstand.rundenMaxPunkte;
 
-  // Allein gewinnt man eine Runde, wenn mehr als die Hälfte richtig ist.
+  // Allein gewinnt man eine Runde mit mehr als der Hälfte der möglichen Punkte.
   // (Online gewinnt später, wer in der Runde die meisten Punkte hat.)
-  const gewonnen = spielstand.rundenPunkte * 2 > anzahlFragen;
+  const gewonnen = spielstand.rundenPunkte * 2 > maxPunkte;
   if (gewonnen) {
     spielstand.rundenSiege = spielstand.rundenSiege + 1;
   }
@@ -284,7 +324,7 @@ function rundeVorbei() {
 
   const titel = document.createElement("h2");
   titel.textContent = "Runde " + spielstand.runde + " vorbei: " +
-    spielstand.rundenPunkte + " von " + anzahlFragen + " richtig";
+    spielstand.rundenPunkte + " von " + maxPunkte + " Punkten";
   spielfeld.appendChild(titel);
 
   if (e.modus === "siege") {
@@ -357,10 +397,19 @@ function zeigeRueckblick(verlauf) {
   liste.innerHTML = "";
   verlauf.forEach(function (eintrag, nummer) {
     const details = document.createElement("details");
-    details.className = eintrag.richtig ? "richtig" : "falsch";
+    // ✅ alle Punkte, 🟡 ein Teil der Punkte, ❌ keine Punkte
+    let symbolText = "🟡 ";
+    details.className = "teilweise";
+    if (eintrag.punkte >= eintrag.maxPunkte) {
+      symbolText = "✅ ";
+      details.className = "richtig";
+    } else if (eintrag.punkte === 0) {
+      symbolText = "❌ ";
+      details.className = "falsch";
+    }
 
     const zeile = document.createElement("summary");
-    zeile.textContent = (nummer + 1) + ". " + (eintrag.richtig ? "✅ " : "❌ ") + eintrag.text;
+    zeile.textContent = (nummer + 1) + ". " + symbolText + eintrag.text;
     details.appendChild(zeile);
 
     if (eintrag.info) {

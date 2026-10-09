@@ -70,6 +70,40 @@ button.falsch { background: #e5484d; opacity: 1; animation: wackeln 0.4s ease-ou
 /* Punkte hüpfen kurz, wenn man einen Punkt bekommt */
 #punkte.hochzaehlen { animation: hochzaehlen 0.5s ease-out; }
 
+/* Auflösung (Schätzfrage, Reihenfolge) */
+.aufloesung {
+  background: #2c2842;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 12px 0;
+  text-align: left;
+  white-space: pre-line;  /* Zeilenumbrüche im Text anzeigen */
+}
+
+/* Schätzfrage: Eingabefeld mit Einheit daneben */
+.schaetz-reihe { align-items: center; }
+.schaetz-reihe .einheit { flex: 0 0 auto; color: #b8b2d6; }
+input.schaetz-eingabe { font-size: 24px; text-align: center; }
+input.richtig { background: #2fb36d; color: white; }
+input.teilweise { background: #f5c542; color: #1e1b2e; }
+input.falsch { background: #e5484d; color: white; }
+
+/* Reihenfolge: Antworten mit Platznummer */
+button.sortier-knopf { background: #48426a; text-align: left; display: flex; gap: 10px; }
+button.sortier-knopf.gewaehlt { background: #7c5cff; }
+.sortier-knopf .platz { min-width: 28px; font-weight: bold; }
+.sortier-ergebnis { border-radius: 12px; padding: 12px 14px; margin: 8px 0; text-align: left; }
+.sortier-ergebnis.richtig { background: #2fb36d; }
+.sortier-ergebnis.teilweise { background: #f5c542; color: #1e1b2e; }
+.sortier-ergebnis.falsch { background: #e5484d; }
+
+/* Kärtchen: 3 nebeneinander */
+.kaertchen-gitter { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+button.kaertchen { margin: 0; padding: 10px 6px; font-size: 15px; min-height: 60px; background: #48426a; }
+button.kaertchen.richtig { background: #2fb36d; }
+button.kaertchen.falsch { background: #e5484d; }
+button.kaertchen.verpasst { opacity: 1; box-shadow: inset 0 0 0 3px #2fb36d; }
+
 /* Infobox mit Extra-Fakt nach der Antwort */
 .infobox {
   background: #2c2842;
@@ -97,6 +131,7 @@ button.falsch { background: #e5484d; opacity: 1; animation: wackeln 0.4s ease-ou
 #rueckblick { text-align: left; }
 #rueckblick details { background: #48426a; border-radius: 12px; padding: 10px 14px; margin: 8px 0; border-left: 5px solid #e5484d; }
 #rueckblick details.richtig { border-left-color: #2fb36d; }
+#rueckblick details.teilweise { border-left-color: #f5c542; }
 #rueckblick summary { cursor: pointer; list-style: none; display: flex; gap: 8px; }
 #rueckblick summary::-webkit-details-marker { display: none; }
 #rueckblick .info-symbol { margin-left: auto; color: #f5c542; font-size: 20px; }
