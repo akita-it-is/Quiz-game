@@ -104,6 +104,20 @@ button.kaertchen.richtig { background: #2fb36d; }
 button.kaertchen.falsch { background: #e5484d; }
 button.kaertchen.verpasst { opacity: 1; box-shadow: inset 0 0 0 3px #2fb36d; }
 
+/* Entweder oder: Aussage groß in der Mitte, zwei Knöpfe nebeneinander */
+.eo-bereich.neu { animation: hereingleiten 0.3s ease-out; }
+.eo-aussage { background: #2c2842; border-radius: 12px; padding: 20px 14px; margin: 10px 0; font-size: 20px; font-weight: bold; }
+.eo-meldung { font-weight: bold; }
+
+/* Mathe: Aufgabe, Anzeige und Tastenfeld */
+.mathe-aufgabe { font-size: 32px; }
+.mathe-anzeige { background: #f2f0fa; color: #1e1b2e; border-radius: 12px; padding: 12px; font-size: 32px; font-weight: bold; min-height: 40px; margin: 10px auto; max-width: 260px; }
+.mathe-anzeige.richtig { background: #2fb36d; color: white; }
+.mathe-anzeige.falsch { background: #e5484d; color: white; }
+.tastenfeld { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 320px; margin: 0 auto; }
+.tastenfeld button { margin: 0; font-size: 24px; padding: 16px 0; }
+.tastenfeld button.ok { background: #2fb36d; }
+
 /* Infobox mit Extra-Fakt nach der Antwort */
 .infobox {
   background: #2c2842;
