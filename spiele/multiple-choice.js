@@ -1,6 +1,6 @@
 spiele.multipleChoice = {
       name: "Multiple Choice",
-        fragenQuelle: "Hhttps://docs.google.com/spreadsheets/d/e/2PACX-1vR8OYp4uAniqpn3dj2qzpyahA2Rg59EVSV1kLrskYtLjICQOwfTqm34D3A5aMVUbIo6bJUKCznYyieT/pub?gid=0&single=true&output=csv",
+        fragenQuelle: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR8OYp4uAniqpn3dj2qzpyahA2Rg59EVSV1kLrskYtLjICQOwfTqm34D3A5aMVUbIo6bJUKCznYyieT/pub?gid=0&single=true&output=csv",
 
           // Wandelt eine Tabellenzeile in eine Frage um
             zeileZuFrage: function (zeile) {
