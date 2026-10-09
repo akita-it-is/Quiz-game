@@ -27,6 +27,9 @@ async function starteRunde() {
   const spiel = alleSpiele[Math.floor(Math.random() * alleSpiele.length)];
 
   const fragen = await ladeFragen(spiel);
+  if (fragen.length === 0) {
+    throw new Error("Keine Fragen in der Tabelle für " + spiel.name + " gefunden");
+  }
   const frage = fragen[Math.floor(Math.random() * fragen.length)];
 
   spiel.zeige(frage, document.getElementById("spielfeld"), rundeBeendet);
