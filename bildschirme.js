@@ -66,7 +66,17 @@ document.getElementById("knopf-verbinden").onclick = function () {
   hinweis("profil-hinweis", "Account verbinden kommt bald – dann bleibt dein Fortschritt auf allen Geräten.");
 };
 document.getElementById("knopf-einstellungen-profil").onclick = function () {
-  hinweis("profil-hinweis", "Einstellungen kommen bald.");
+  zeigeBildschirm("app-einstellungen");
+};
+
+// --- Einstellungen ---
+document.getElementById("knopf-einstellungen-zurueck").onclick = zeigeProfil;
+document.getElementById("knopf-profil-loeschen").onclick = function () {
+  // Sicherheitsfrage, damit man nicht aus Versehen alles löscht
+  if (confirm("Willst du dein Profil wirklich löschen? Name, Charakter, Statistik und Erfolge sind dann weg.")) {
+    loescheProfil();
+    zeigeBildschirm("start");
+  }
 };
 
 // --- Inventar ---

@@ -137,6 +137,10 @@ button.pfeil { width: 40px; flex: 0 0 40px; padding: 8px 0; margin: 0; }
 .kommt-bald { font-size: 22px; margin: 40px 0; }
 .sammlung-liste button.ausgeruestet { background: #7c5cff; }
 
+button.gefahr { background: #e5484d; }
+.fusszeile { margin-top: 30px; font-size: 14px; color: #b8b2d6; }
+.fusszeile a { color: #b8b2d6; }
+
 /* Erfolge-Liste */
 .erfolg-eintrag { background: #48426a; border-radius: 12px; padding: 12px 14px; margin: 8px 0; text-align: left; opacity: 0.75; }
 .erfolg-eintrag.geschafft { opacity: 1; border-left: 5px solid #2fb36d; }
@@ -235,3 +239,7 @@ button.pfeil { width: 40px; flex: 0 0 40px; padding: 8px 0; margin: 0; }
 @keyframes zeichnen {
   to { stroke-dashoffset: 0; }
 }
+
+/* Seiten Impressum und Datenschutz */
+.rechtstext { max-width: 720px; margin: 0 auto; text-align: left; line-height: 1.5; }
+.rechtstext a { color: #b8a8ff; }

@@ -65,6 +65,18 @@
     </div>
   </section>
 
+  <!-- Einstellungen -->
+  <section id="app-einstellungen" class="bildschirm">
+    <div class="karte">
+      <h2>Einstellungen</h2>
+      <p class="hinweis">Weitere Einstellungen kommen bald.</p>
+      <button id="knopf-profil-loeschen" class="gefahr">Profil löschen</button>
+      <p class="hinweis">Löscht deinen Namen, Charakter, deine Statistik und Erfolge von diesem Gerät.
+        Mit Account-System löscht dieser Knopf später auch dein Konto.</p>
+      <button id="knopf-einstellungen-zurueck" class="zweitrangig">Zurück</button>
+    </div>
+  </section>
+
   <!-- Shop -->
   <section id="shop" class="bildschirm">
     <div class="karte">
@@ -171,7 +183,13 @@
     </div>
   </section>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <!-- Fußzeile mit rechtlichen Seiten (Text kommt später aus einem Generator) -->
+  <footer class="fusszeile">
+    <a href="impressum.html">Impressum</a> · <a href="datenschutz.html">Datenschutz</a>
+  </footer>
+
+  <!-- Papa Parse liegt direkt im Projekt (lib/), damit keine fremde Seite geladen werden muss -->
+  <script src="lib/papaparse.min.js"></script>
   <script>const spiele = {};</script>
   <script src="spiele/multiple-choice.js"></script>
   <script src="spiele/wahr-falsch.js"></script>
