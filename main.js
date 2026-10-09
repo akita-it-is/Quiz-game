@@ -20,7 +20,8 @@ async function ladeFragen(spiel) {
 
 // Wählt Spielart und Frage und startet die Runde
 async function starteRunde() {
-  const alleSpiele = Object.values(spiele);
+  // Nur Spielarten nehmen, bei denen schon ein Tabellen-Link eingetragen ist
+  const alleSpiele = Object.values(spiele).filter(function (s) { return s.fragenQuelle; });
   if (alleSpiele.length === 0) {
     throw new Error("Keine Spielart angemeldet");
   }
