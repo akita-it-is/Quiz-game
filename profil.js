@@ -65,6 +65,16 @@ function speichereProfil() {
   }
 }
 
+// Löscht das Profil aus dem Browser (Recht auf Löschung)
+function loescheProfil() {
+  try {
+    localStorage.removeItem("quiz-profil");
+  } catch (e) {
+    // nichts gespeichert – nichts zu löschen
+  }
+  profil = null;
+}
+
 // Ein neues Gast-Profil mit zufälligem Namen
 function neuesProfil() {
   return {
