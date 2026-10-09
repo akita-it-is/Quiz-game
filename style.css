@@ -70,6 +70,38 @@ button.falsch { background: #e5484d; opacity: 1; animation: wackeln 0.4s ease-ou
 /* Punkte hüpfen kurz, wenn man einen Punkt bekommt */
 #punkte.hochzaehlen { animation: hochzaehlen 0.5s ease-out; }
 
+/* Infobox mit Extra-Fakt nach der Antwort */
+.infobox {
+  background: #2c2842;
+  border-left: 5px solid #f5c542;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 14px 0 4px;
+  text-align: left;
+}
+.infobox p { margin: 6px 0 0; }
+
+/* Siegertreppchen auf dem Endbildschirm */
+#treppchen { display: flex; align-items: flex-end; justify-content: center; gap: 8px; margin-bottom: 10px; }
+.stufe { flex: 1; max-width: 140px; animation: hereingleiten 0.5s ease-out backwards; }
+.stufe .name { font-weight: bold; }
+.stufe .punktzahl { font-size: 14px; color: #b8b2d6; margin-bottom: 6px; }
+.stufe .block { background: #48426a; border-radius: 10px 10px 0 0; font-size: 28px; font-weight: bold; padding-top: 10px; }
+.platz1 .block { height: 110px; background: #f5c542; color: #1e1b2e; }
+.platz2 .block { height: 80px; background: #b8c2d6; color: #1e1b2e; }
+.platz3 .block { height: 60px; background: #cd8a4f; color: #1e1b2e; }
+.platz1 { animation-delay: 0.3s; }
+.platz3 { animation-delay: 0.15s; }
+
+/* Rückblick: alle Fragen zum Aufklappen */
+#rueckblick { text-align: left; }
+#rueckblick details { background: #48426a; border-radius: 12px; padding: 10px 14px; margin: 8px 0; border-left: 5px solid #e5484d; }
+#rueckblick details.richtig { border-left-color: #2fb36d; }
+#rueckblick summary { cursor: pointer; list-style: none; display: flex; gap: 8px; }
+#rueckblick summary::-webkit-details-marker { display: none; }
+#rueckblick .info-symbol { margin-left: auto; color: #f5c542; font-size: 20px; }
+#rueckblick p { margin: 8px 0 0; color: #dcd8f0; }
+
 /* Timer-Balken über der Frage */
 #timer { display: none; height: 10px; background: #48426a; border-radius: 5px; overflow: hidden; }
 #timer-balken { height: 100%; width: 100%; background: #4cd38a; transition: background 0.3s, width 0.1s linear; }

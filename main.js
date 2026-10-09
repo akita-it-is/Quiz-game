@@ -26,6 +26,8 @@ async function ladeFragen(spiel) {
     frage.kategorie = String(frage.kategorie || "sonstiges").trim().toLowerCase();
     // Jede Frage braucht eine eindeutige id, damit sie im Spiel nicht doppelt kommt
     frage.id = frage.id || spiel.name + "-" + nummer;
+    // Optionale Spalte "info": kleiner Extra-Fakt, der nach der Antwort erscheint
+    frage.info = String(tabelle.data[nummer].info || "").trim();
     return frage;
   });
   fragenSpeicher[spiel.name] = fragen;
@@ -55,7 +57,8 @@ async function starteSpiel(einstellungen) {
     punkte: 0,
     rundenSiege: 0,
     letzteSpielart: null,
-    benutzteFragen: new Set()
+    benutzteFragen: new Set(),
+    verlauf: []   // alle gespielten Fragen für den Endbildschirm
   };
   zeigeBildschirm("spiel");
   await naechsteRunde();
@@ -150,11 +153,45 @@ function auswerten(gewaehlterKnopf, fertig) {
     punkte.classList.add("hochzaehlen");
   }
 
-  // Nach 1,5 Sekunden ausblenden, danach die nächste Frage
-  setTimeout(function () {
+  // Frage für den Endbildschirm merken
+  const frage = spielstand.rundenFragen[spielstand.frageNummer];
+  spielstand.verlauf.push({
+    text: frage.text,
+    richtigeAntwort: richtigerKnopf ? richtigerKnopf.textContent : "",
+    richtig: istRichtig,
+    info: frage.info
+  });
+
+  // Blendet die Frage aus und geht zur nächsten
+  function weiter() {
     spielfeld.classList.add("ausblenden");
     setTimeout(function () { fertig(istRichtig ? 1 : 0); }, 300);
-  }, 1500);
+  }
+
+  if (frage.info) {
+    // Mit Extra-Fakt: Infobox zeigen, weiter geht es per Knopf
+    const box = document.createElement("div");
+    box.className = "infobox";
+    const titel = document.createElement("strong");
+    titel.textContent = "💡 Wusstest du?";
+    const text = document.createElement("p");
+    text.textContent = frage.info;
+    box.appendChild(titel);
+    box.appendChild(text);
+    spielfeld.appendChild(box);
+
+    const knopf = document.createElement("button");
+    knopf.className = "weiter";
+    knopf.textContent = "Weiter";
+    knopf.onclick = function () {
+      knopf.disabled = true;
+      weiter();
+    };
+    spielfeld.appendChild(knopf);
+  } else {
+    // Ohne Extra-Fakt: nach 1,5 Sekunden automatisch weiter
+    setTimeout(weiter, 1500);
+  }
 }
 
 let timerId = null;
@@ -278,7 +315,69 @@ function zeigeErgebnis() {
       spielstand.runde + " Runden (" + spielstand.punkte + " Punkte).";
   }
   document.getElementById("ergebnis-text").textContent = text;
+
+  // Alle Spieler mit Punkten. Allein bist nur du dabei, online kommen später die Freunde dazu.
+  zeigeTreppchen([{ name: "Du", punkte: spielstand.punkte }]);
+  zeigeRueckblick(spielstand.verlauf);
   zeigeBildschirm("ergebnis");
+}
+
+// Siegertreppchen: Platz 2 links, Platz 1 in der Mitte (am höchsten), Platz 3 rechts
+function zeigeTreppchen(spieler) {
+  const sortiert = spieler.slice().sort(function (a, b) { return b.punkte - a.punkte; });
+  const treppchen = document.getElementById("treppchen");
+  treppchen.innerHTML = "";
+  [1, 0, 2].forEach(function (platz) {
+    const s = sortiert[platz];
+    const stufe = document.createElement("div");
+    stufe.className = "stufe platz" + (platz + 1);
+    if (s) {
+      const name = document.createElement("div");
+      name.className = "name";
+      name.textContent = (platz === 0 ? "👑 " : "") + s.name;
+      const punkte = document.createElement("div");
+      punkte.className = "punktzahl";
+      punkte.textContent = s.punkte + " Punkte";
+      stufe.appendChild(name);
+      stufe.appendChild(punkte);
+    } else {
+      // Platz nicht besetzt (z. B. allein gespielt): Stufe unsichtbar, Platz bleibt frei
+      stufe.style.visibility = "hidden";
+    }
+    const block = document.createElement("div");
+    block.className = "block";
+    block.textContent = platz + 1;
+    stufe.appendChild(block);
+    treppchen.appendChild(stufe);
+  });
+}
+
+// Liste aller Fragen des Spiels. Mit ⓘ klappt man Antwort und Extra-Fakt auf.
+function zeigeRueckblick(verlauf) {
+  const liste = document.getElementById("rueckblick");
+  liste.innerHTML = "";
+  verlauf.forEach(function (eintrag, nummer) {
+    const details = document.createElement("details");
+    details.className = eintrag.richtig ? "richtig" : "falsch";
+
+    const zeile = document.createElement("summary");
+    zeile.textContent = (nummer + 1) + ". " + (eintrag.richtig ? "✅ " : "❌ ") + eintrag.text;
+    const symbol = document.createElement("span");
+    symbol.className = "info-symbol";
+    symbol.textContent = "ⓘ";
+    zeile.appendChild(symbol);
+    details.appendChild(zeile);
+
+    const antwort = document.createElement("p");
+    antwort.textContent = "Richtige Antwort: " + eintrag.richtigeAntwort;
+    details.appendChild(antwort);
+    if (eintrag.info) {
+      const info = document.createElement("p");
+      info.textContent = "💡 " + eintrag.info;
+      details.appendChild(info);
+    }
+    liste.appendChild(details);
+  });
 }
 
 // Zeigt eine Fehlermeldung auf der Seite an
