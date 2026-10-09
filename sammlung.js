@@ -28,11 +28,12 @@ const SPRUECHE = [
   { id: "koenig",      text: "Ich bin der König der Tafelrunde!", seltenheit: "legendär",   freischaltung: "shop", preis: 300 }
 ];
 
-// Haustiere – nur Optik, sitzen neben deinem Charakter
+// Haustiere sind Insekten – nur Optik, sie sitzen neben deinem Charakter.
+// Hinweis: Für die Hummel gibt es kein eigenes Emoji – bis es ein eigenes Bild gibt,
+// sieht sie aus wie die Biene.
 const HAUSTIERE = [
-  { id: "hund",    name: "Hund",    bild: "🐶", seltenheit: "gewöhnlich", freischaltung: "start" },
-  { id: "katze",   name: "Katze",   bild: "🐱", seltenheit: "gewöhnlich", freischaltung: "start" },
-  { id: "fuchs",   name: "Fuchs",   bild: "🦊", seltenheit: "selten",     freischaltung: "erfolg:richtig10" },
-  { id: "eule",    name: "Eule",    bild: "🦉", seltenheit: "episch",     freischaltung: "shop", preis: 400 },
-  { id: "drache",  name: "Drache",  bild: "🐉", seltenheit: "legendär",   freischaltung: "shop", preis: 800 }
+  { id: "biene",         name: "Biene",         bild: "🐝", seltenheit: "gewöhnlich", freischaltung: "start" },
+  { id: "schmetterling", name: "Schmetterling", bild: "🦋", seltenheit: "gewöhnlich", freischaltung: "start" },
+  { id: "hummel",        name: "Hummel",        bild: "🐝", seltenheit: "selten",     freischaltung: "erfolg:richtig10" },
+  { id: "kaefer",        name: "Käfer",         bild: "🪲", seltenheit: "episch",     freischaltung: "shop", preis: 400 }
 ];

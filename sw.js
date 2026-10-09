@@ -4,7 +4,7 @@
 //
 // Wenn neue Dateien dazukommen, hier in die Liste eintragen und VERSION um 1 erhöhen.
 
-const VERSION = 2;
+const VERSION = 3;
 const SPEICHER = "tafelrunde-v" + VERSION;
 
 const DATEIEN = [
