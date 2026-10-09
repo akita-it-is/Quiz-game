@@ -8,6 +8,17 @@ async function ladeFragen(spiel) {
   if (fragenSpeicher[spiel.name]) {
     return fragenSpeicher[spiel.name];
   }
+  // Manche Spielarten (z. B. Mathe) erzeugen ihre Fragen selbst, ohne Tabelle
+  if (spiel.erzeugeFragen) {
+    const fragen = spiel.erzeugeFragen().map(function (frage, nummer) {
+      frage.kategorie = String(frage.kategorie || "sonstiges").trim().toLowerCase();
+      frage.id = spiel.name + "-" + nummer;
+      frage.info = frage.info || "";
+      return frage;
+    });
+    fragenSpeicher[spiel.name] = fragen;
+    return fragen;
+  }
   const antwort = await fetch(spiel.fragenQuelle);
   const text = await antwort.text();
   const tabelle = Papa.parse(text, {
@@ -17,7 +28,8 @@ async function ladeFragen(spiel) {
     transformHeader: function (spalte) { return spalte.trim().toLowerCase(); }
   });
   // Ohne Spalte "text" kann keine Frage angezeigt werden
-  if (!tabelle.meta.fields || !tabelle.meta.fields.includes("text")) {
+  // (außer die Spielart braucht keine, wie "Entweder oder")
+  if (!spiel.ohneTextSpalte && (!tabelle.meta.fields || !tabelle.meta.fields.includes("text"))) {
     throw new Error("In der Tabelle für " + spiel.name + " fehlt die Spalte \"text\". " +
       "Gefundene Spalten: " + (tabelle.meta.fields || []).join(", "));
   }
@@ -35,8 +47,20 @@ async function ladeFragen(spiel) {
 }
 
 // Alle Spielarten, bei denen schon ein Tabellen-Link eingetragen ist
+// (oder die ihre Fragen selbst erzeugen)
 function aktiveSpiele() {
-  return Object.values(spiele).filter(function (s) { return s.fragenQuelle; });
+  return Object.values(spiele).filter(function (s) { return s.fragenQuelle || s.erzeugeFragen; });
+}
+
+// Wie viele Sekunden eine Frage dieser Spielart hat.
+// "festeZeit" kann eine Zahl sein (Kärtchen: immer 60) oder eine Funktion,
+// die aus der Lobby-Zeit eine eigene Zeit macht (Mathe: 15 oder 20).
+function zeitFuer(spiel) {
+  const lobbyZeit = spielstand.einstellungen.sekunden;
+  if (typeof spiel.festeZeit === "function") {
+    return spiel.festeZeit(lobbyZeit);
+  }
+  return spiel.festeZeit || lobbyZeit;
 }
 
 // Liest eine Zahl aus einem Text, auch in deutscher Schreibweise:
@@ -142,9 +166,8 @@ function zeigeFrage() {
   // Eine Spielart kann eine eigene Funktion für "Zeit abgelaufen" zurückgeben
   // (z. B. Schätzfrage: das bisher Eingetippte trotzdem werten)
   const beiZeitAblauf = spielstand.spiel.zeige(frage, document.getElementById("spielfeld"), fertig);
-  // Manche Spielarten haben eine feste Zeit (z. B. Kärtchen: immer 60 Sekunden)
-  const sekunden = spielstand.spiel.festeZeit || spielstand.einstellungen.sekunden;
-  starteTimer(sekunden, function () {
+  // Manche Spielarten haben eine eigene Zeit (z. B. Kärtchen: immer 60 Sekunden)
+  starteTimer(zeitFuer(spielstand.spiel), function () {
     if (typeof beiZeitAblauf === "function") {
       beiZeitAblauf();
     } else {
@@ -189,6 +212,9 @@ function abschliessen(punkte, maxPunkte, fertig) {
     void anzeige.offsetWidth; // startet die Animation neu
     anzeige.classList.add("hochzaehlen");
   }
+
+  // Für Statistik und Erfolge zählen (als richtig zählt alles mit Punkten)
+  zaehleAntwort(punkte > 0);
 
   // Frage für den Endbildschirm merken
   const frage = spielstand.rundenFragen[spielstand.frageNummer];
@@ -356,7 +382,9 @@ function zeigeErgebnis() {
   document.getElementById("ergebnis-text").textContent = text;
 
   // Alle Spieler mit Punkten. Allein bist nur du dabei, online kommen später die Freunde dazu.
-  zeigeTreppchen([{ name: "Du", punkte: spielstand.punkte }]);
+  zeigeTreppchen([{ name: profil.name, punkte: spielstand.punkte }]);
+  profil.statistik.spiele = profil.statistik.spiele + 1;
+  speichereProfil();
   zeigeRueckblick(spielstand.verlauf);
   zeigeBildschirm("ergebnis");
 }

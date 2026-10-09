@@ -23,7 +23,94 @@
     </div>
   </section>
 
-  <!-- Bildschirm 2: Menü -->
+  <!-- Charakter wählen (kommt nach "Als Gast" und über Inventar → Outfits) -->
+  <section id="charakter" class="bildschirm">
+    <div class="karte">
+      <div class="reihe name-reihe">
+        <div id="charakter-name" class="name-feld"></div>
+        <button id="knopf-neuer-name" class="zweitrangig klein" title="Neuer Name">🎲</button>
+      </div>
+      <div class="charakter-bereich">
+        <div id="charakter-figur" class="figur-gross"></div>
+        <div id="charakter-auswahl"></div>
+      </div>
+      <button id="knopf-charakter-fertig">Los geht's</button>
+    </div>
+  </section>
+
+  <!-- Startseite: Profilbild, Name, Quiz / Shop / Inventar -->
+  <section id="home" class="bildschirm">
+    <div class="karte">
+      <div class="profil-kopf">
+        <button id="knopf-profilbild" class="profilbild" title="Profil"></button>
+        <div id="home-name" class="name-feld"></div>
+      </div>
+      <button id="knopf-quiz" class="gross">Quiz</button>
+      <button id="knopf-shop" class="gross zweitrangig">Shop</button>
+      <button id="knopf-inventar" class="gross zweitrangig">Inventar</button>
+    </div>
+  </section>
+
+  <!-- Profil -->
+  <section id="profil" class="bildschirm">
+    <div class="karte">
+      <div id="profil-figur" class="figur-gross"></div>
+      <h2 id="profil-name"></h2>
+      <button id="knopf-profil-info">Profilinformationen</button>
+      <div id="profil-info" class="aufloesung" hidden></div>
+      <button id="knopf-verbinden" class="zweitrangig">Account hier verbinden</button>
+      <button id="knopf-einstellungen-profil" class="zweitrangig">Einstellungen</button>
+      <p id="profil-hinweis" class="hinweis"></p>
+      <button class="zweitrangig zurueck-home">Zurück</button>
+    </div>
+  </section>
+
+  <!-- Shop -->
+  <section id="shop" class="bildschirm">
+    <div class="karte">
+      <h2>Shop</h2>
+      <p class="kommt-bald">Kommt bald 🛒</p>
+      <button class="zweitrangig zurueck-home">Zurück</button>
+    </div>
+  </section>
+
+  <!-- Inventar -->
+  <section id="inventar" class="bildschirm">
+    <div class="karte">
+      <h2>Inventar</h2>
+      <button id="knopf-outfits" class="gross">👕 Outfits</button>
+      <div class="reihe">
+        <button id="knopf-emotes" class="gross zweitrangig">😄 Emotes</button>
+        <button id="knopf-sprueche" class="gross zweitrangig">💬 Sprüche</button>
+      </div>
+      <button id="knopf-erfolge" class="gross zweitrangig">🏆 Erfolge</button>
+      <button class="zweitrangig zurueck-home">Zurück</button>
+    </div>
+  </section>
+
+  <!-- Emotes / Sprüche (gleicher Aufbau, Inhalt kommt aus inventar.js) -->
+  <section id="sammlung" class="bildschirm">
+    <div class="karte">
+      <h2 id="sammlung-titel"></h2>
+      <p class="hinweis">Tippe zum Ausrüsten. Im Online-Spiel kannst du sie dann benutzen (kommt bald).</p>
+      <div id="sammlung-liste" class="sammlung-liste"></div>
+      <button class="zweitrangig zurueck-inventar">Zurück</button>
+    </div>
+  </section>
+
+  <!-- Erfolge -->
+  <section id="erfolge" class="bildschirm">
+    <div class="karte">
+      <h2>Erfolge</h2>
+      <div id="erfolge-liste"></div>
+      <button class="zweitrangig zurueck-inventar">Zurück</button>
+    </div>
+  </section>
+
+  <!-- Box oben rechts, wenn ein Erfolg geschafft wurde -->
+  <div id="erfolg-box" aria-live="polite"></div>
+
+  <!-- Lobby-Auswahl -->
   <section id="menue" class="bildschirm">
     <div class="karte">
       <button id="knopf-lobby-erstellen">+ Lobby erstellen</button>
@@ -33,6 +120,7 @@
       </div>
       <button id="knopf-daily" class="zweitrangig">Daily – Tägliche Fragen</button>
       <p id="menue-hinweis" class="hinweis"></p>
+      <button class="zweitrangig zurueck-home">Zurück</button>
     </div>
   </section>
 
@@ -79,7 +167,7 @@
       <h3>Alle Fragen</h3>
       <div id="rueckblick"></div>
       <button id="knopf-nochmal">Nochmal spielen</button>
-      <button id="knopf-zum-menue" class="zweitrangig">Zum Menü</button>
+      <button id="knopf-zum-menue" class="zweitrangig">Zur Startseite</button>
     </div>
   </section>
 
@@ -90,7 +178,12 @@
   <script src="spiele/schaetzfrage.js"></script>
   <script src="spiele/reihenfolge.js"></script>
   <script src="spiele/kaertchen.js"></script>
+  <script src="spiele/entweder-oder.js"></script>
+  <script src="spiele/mathe.js"></script>
   <script src="main.js"></script>
+  <script src="profil.js"></script>
+  <script src="erfolge.js"></script>
+  <script src="inventar.js"></script>
   <script src="einstellungen.js"></script>
   <script src="bildschirme.js"></script>
 </body>
