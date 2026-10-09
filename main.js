@@ -125,10 +125,10 @@ function zeigeFrage() {
 }
 
 // Färbt die Knöpfe nach einer Antwort: richtige Antwort grün, falsch gewählte rot.
-// Nach einer kurzen Pause geht es mit der nächsten Frage weiter.
+// Der Timer bleibt stehen, nach einer Pause blendet die Frage weich aus.
 // "gewaehlterKnopf" ist null, wenn die Zeit abgelaufen ist.
 function auswerten(gewaehlterKnopf, fertig) {
-  stoppeTimer();
+  pausiereTimer();
   const spielfeld = document.getElementById("spielfeld");
   spielfeld.querySelectorAll("button").forEach(function (k) { k.disabled = true; });
 
@@ -141,7 +141,20 @@ function auswerten(gewaehlterKnopf, fertig) {
     gewaehlterKnopf.classList.add("falsch");
   }
 
-  setTimeout(function () { fertig(istRichtig ? 1 : 0); }, 1200);
+  // Punkte sofort hochzählen (mit kleinem Hüpfer)
+  if (istRichtig) {
+    const punkte = document.getElementById("punkte");
+    punkte.textContent = "Punkte: " + (spielstand.punkte + 1);
+    punkte.classList.remove("hochzaehlen");
+    void punkte.offsetWidth; // startet die Animation neu
+    punkte.classList.add("hochzaehlen");
+  }
+
+  // Nach 1,5 Sekunden ausblenden, danach die nächste Frage
+  setTimeout(function () {
+    spielfeld.classList.add("ausblenden");
+    setTimeout(function () { fertig(istRichtig ? 1 : 0); }, 300);
+  }, 1500);
 }
 
 let timerId = null;
@@ -161,12 +174,19 @@ function starteTimer(sekunden, zeitAbgelaufen) {
     balken.classList.toggle("knapp", rest <= 5000);
     zahl.textContent = Math.ceil(rest / 1000) + " s";
     if (rest === 0) {
-      stoppeTimer();
+      pausiereTimer();
+      zahl.textContent = "Zeit um!";
       zeitAbgelaufen();
     }
   }
   aktualisiere();
   timerId = setInterval(aktualisiere, 100);
+}
+
+// Hält den Timer an, er bleibt aber sichtbar stehen
+function pausiereTimer() {
+  clearInterval(timerId);
+  timerId = null;
 }
 
 // Hält den Timer an und versteckt ihn
@@ -194,6 +214,7 @@ function aktualisiereInfo() {
 
 // Wird von der Spielart aufgerufen, wenn eine Frage beantwortet wurde
 function frageBeantwortet(erreichtePunkte) {
+  document.getElementById("spielfeld").classList.remove("ausblenden");
   spielstand.punkte = spielstand.punkte + erreichtePunkte;
   spielstand.rundenPunkte = spielstand.rundenPunkte + erreichtePunkte;
   spielstand.frageNummer = spielstand.frageNummer + 1;
@@ -263,6 +284,7 @@ function zeigeErgebnis() {
 // Zeigt eine Fehlermeldung auf der Seite an
 function zeigeFehler(fehler) {
   stoppeTimer();
+  document.getElementById("spielfeld").classList.remove("ausblenden");
   zeigeBildschirm("spiel");
   document.getElementById("spielfeld").textContent = "Fehler: " + fehler.message;
 }
