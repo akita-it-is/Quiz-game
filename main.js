@@ -1,3 +1,5 @@
+document.getElementById("spielfeld").textContent = "main.js läuft";
+
 let punkte = 0;
 let fragenzaehler = 0;
 const anzahlFragen = 5;
