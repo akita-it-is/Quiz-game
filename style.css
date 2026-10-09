@@ -118,6 +118,49 @@ button.kaertchen.verpasst { opacity: 1; box-shadow: inset 0 0 0 3px #2fb36d; }
 .tastenfeld button { margin: 0; font-size: 24px; padding: 16px 0; }
 .tastenfeld button.ok { background: #2fb36d; }
 
+/* ===== Startseite, Profil, Charakter ===== */
+button.gross { padding: 22px; font-size: 22px; font-weight: bold; }
+button.klein { flex: 0 0 auto; width: auto; padding: 10px 14px; }
+.name-feld { background: #48426a; border-radius: 12px; padding: 12px; font-weight: bold; text-align: left; }
+.name-reihe { align-items: center; }
+.profil-kopf { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.profil-kopf .name-feld { flex: 1; }
+button.profilbild { width: 64px; height: 64px; padding: 0; margin: 0; border-radius: 50%; background: #48426a; overflow: hidden; flex: 0 0 auto; border: 3px solid #7c5cff; }
+.profilbild svg { width: 100%; height: 100%; }
+.figur-gross svg { width: 100%; max-width: 150px; height: auto; display: block; margin: 0 auto; }
+.charakter-bereich { display: flex; gap: 12px; align-items: center; margin: 12px 0; }
+.charakter-bereich > * { flex: 1; }
+.pfeil-reihe { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
+button.pfeil { width: 40px; flex: 0 0 40px; padding: 8px 0; margin: 0; }
+.teil-name { flex: 1; font-size: 14px; line-height: 1.2; }
+.teil-name small { color: #b8b2d6; }
+.kommt-bald { font-size: 22px; margin: 40px 0; }
+.sammlung-liste button.ausgeruestet { background: #7c5cff; }
+
+/* Erfolge-Liste */
+.erfolg-eintrag { background: #48426a; border-radius: 12px; padding: 12px 14px; margin: 8px 0; text-align: left; opacity: 0.75; }
+.erfolg-eintrag.geschafft { opacity: 1; border-left: 5px solid #2fb36d; }
+.erfolg-eintrag p { margin: 4px 0 8px; }
+.erfolg-balken { height: 8px; background: #2c2842; border-radius: 4px; overflow: hidden; margin-bottom: 4px; }
+.erfolg-balken > div { height: 100%; background: #f5c542; }
+
+/* Erfolg-Box oben rechts */
+#erfolg-box { position: fixed; top: 12px; right: 12px; z-index: 10; display: flex; flex-direction: column; gap: 8px; }
+.erfolg-meldung {
+  display: flex; align-items: center; gap: 12px;
+  background: #2c2842; border: 2px solid #f5c542; border-radius: 14px;
+  padding: 10px 14px; max-width: 280px; text-align: left;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  animation: reinGleiten 0.4s ease-out;
+}
+.erfolg-meldung.weg { animation: rausGleiten 0.5s ease-in forwards; }
+.erfolg-text small { color: #f5c542; display: block; }
+.erfolg-haken { display: flex; flex-direction: column; align-items: center; font-size: 12px; color: #2fb36d; font-weight: bold; }
+.erfolg-haken svg { width: 36px; height: 36px; }
+.erfolg-haken circle { fill: none; stroke: #2fb36d; stroke-width: 4; stroke-dasharray: 150; stroke-dashoffset: 150; animation: zeichnen 0.5s 0.6s ease-out forwards; }
+.erfolg-haken path { fill: none; stroke: #2fb36d; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 40; stroke-dashoffset: 40; animation: zeichnen 0.3s 1.1s ease-out forwards; }
+.erfolg-haken span { opacity: 0; animation: einblenden 0.3s 1.3s forwards; }
+
 /* Infobox mit Extra-Fakt nach der Antwort */
 .infobox {
   background: #2c2842;
@@ -181,4 +224,14 @@ button.kaertchen.verpasst { opacity: 1; box-shadow: inset 0 0 0 3px #2fb36d; }
 }
 @keyframes hochzaehlen {
   40% { transform: scale(1.3); color: #4cd38a; }
+}
+@keyframes reinGleiten {
+  from { transform: translateX(120%); }
+  to { transform: translateX(0); }
+}
+@keyframes rausGleiten {
+  to { transform: translateX(120%); opacity: 0; }
+}
+@keyframes zeichnen {
+  to { stroke-dashoffset: 0; }
 }

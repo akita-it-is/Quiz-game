@@ -213,6 +213,9 @@ function abschliessen(punkte, maxPunkte, fertig) {
     anzeige.classList.add("hochzaehlen");
   }
 
+  // Für Statistik und Erfolge zählen (als richtig zählt alles mit Punkten)
+  zaehleAntwort(punkte > 0);
+
   // Frage für den Endbildschirm merken
   const frage = spielstand.rundenFragen[spielstand.frageNummer];
   spielstand.verlauf.push({
@@ -379,7 +382,9 @@ function zeigeErgebnis() {
   document.getElementById("ergebnis-text").textContent = text;
 
   // Alle Spieler mit Punkten. Allein bist nur du dabei, online kommen später die Freunde dazu.
-  zeigeTreppchen([{ name: "Du", punkte: spielstand.punkte }]);
+  zeigeTreppchen([{ name: profil.name, punkte: spielstand.punkte }]);
+  profil.statistik.spiele = profil.statistik.spiele + 1;
+  speichereProfil();
   zeigeRueckblick(spielstand.verlauf);
   zeigeBildschirm("ergebnis");
 }
