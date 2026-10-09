@@ -1,5 +1,7 @@
 spiele.mathe = {
   name: "Mathe",
+  // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
+  beschreibung: "Rechne schnell! Tippe das Ergebnis auf dem Tastenfeld ein und drücke OK. Jede richtige Aufgabe gibt 1 Punkt.",
   fragenProRunde: 3,
   // Zeit pro Aufgabe: 15 Sekunden, wenn in der Lobby 30 oder weniger eingestellt ist, sonst 20
   festeZeit: function (lobbyZeit) {

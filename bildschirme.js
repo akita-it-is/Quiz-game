@@ -1,15 +1,21 @@
-// Zeigt einen Bildschirm an und versteckt alle anderen
-function zeigeBildschirm(id) {
-  document.querySelectorAll(".bildschirm").forEach(function (b) {
-    b.classList.remove("aktiv");
-  });
-  document.getElementById(id).classList.add("aktiv");
-}
+// ===== Was passiert, wenn man auf einen Knopf tippt =====
+// (zeigeBildschirm, Kopfzeile und Fenster stehen in oberflaeche.js)
 
-// Zeigt kurz einen Hinweistext an (z. B. "kommt bald")
-function hinweis(id, text) {
-  document.getElementById(id).textContent = text;
-}
+// --- Kopfzeile und Fenster ---
+document.getElementById("knopf-zurueck-oben").onclick = geheZurueck;
+document.getElementById("fenster-schliessen").onclick = schliesseFenster;
+document.getElementById("knopf-pause").onclick = function () {
+  pausiereSpiel("⏸ Pausiert", pauseInhalt("Das Spiel ist angehalten. Im Online-Spiel kann nur der Host pausieren."));
+};
+document.getElementById("knopf-spiel-info").onclick = function () {
+  if (spielstand && spielstand.spiel) {
+    // Während man liest, läuft die Zeit nicht weiter
+    pausiereSpiel(spielstand.spiel.name, spielstand.spiel.beschreibung, "Verstanden");
+  }
+};
+document.getElementById("knopf-ton").onclick = function () {
+  zeigeFenster("Einstellungen", baueTonSchalter());
+};
 
 // --- Startbildschirm ---
 document.getElementById("knopf-anmelden").onclick = function () {
@@ -20,8 +26,8 @@ document.getElementById("knopf-google").onclick = function () {
 };
 document.getElementById("knopf-gast").onclick = function () {
   if (profil) {
-    // Schon mal als Gast gespielt: direkt zur Startseite
-    zeigeHome();
+    // Schon mal als Gast gespielt: direkt zur Startseite (oder in die Lobby, falls eingeladen)
+    nachAnmeldung();
   } else {
     // Zum ersten Mal: Charakter wählen, zufälliger Name
     profil = neuesProfil();
@@ -39,7 +45,7 @@ document.getElementById("knopf-charakter-fertig").onclick = function () {
   if (charakterZurueckZu === "inventar") {
     zeigeBildschirm("inventar");
   } else {
-    zeigeHome();
+    nachAnmeldung();
   }
 };
 
@@ -66,12 +72,20 @@ document.getElementById("knopf-profil-info").onclick = function () {
 document.getElementById("knopf-verbinden").onclick = function () {
   hinweis("profil-hinweis", "Account verbinden kommt bald – dann bleibt dein Fortschritt auf allen Geräten.");
 };
+document.getElementById("knopf-id-kopieren").onclick = function () {
+  kopiere(profil.spielerId, this);
+};
+document.getElementById("knopf-freunde-profil").onclick = function () {
+  zeigeFreunde("profil");
+};
 document.getElementById("knopf-einstellungen-profil").onclick = function () {
+  const box = document.getElementById("ton-einstellungen");
+  box.innerHTML = "";
+  box.appendChild(baueTonSchalter());
   zeigeBildschirm("app-einstellungen");
 };
 
 // --- Einstellungen ---
-document.getElementById("knopf-einstellungen-zurueck").onclick = zeigeProfil;
 document.getElementById("knopf-profil-loeschen").onclick = function () {
   // Sicherheitsfrage, damit man nicht aus Versehen alles löscht
   if (confirm("Willst du dein Profil wirklich löschen? Name, Charakter, Statistik und Erfolge sind dann weg.")) {
@@ -95,20 +109,35 @@ document.getElementById("knopf-haustiere").onclick = function () {
 };
 document.getElementById("knopf-erfolge").onclick = zeigeErfolge;
 
-// --- Zurück-Knöpfe (es gibt mehrere davon) ---
-document.querySelectorAll(".zurueck-home").forEach(function (knopf) {
-  knopf.onclick = zeigeHome;
-});
-document.querySelectorAll(".zurueck-inventar").forEach(function (knopf) {
-  knopf.onclick = function () { zeigeBildschirm("inventar"); };
-});
-
 // --- Menü ---
 document.getElementById("knopf-lobby-erstellen").onclick = function () {
   oeffneEinstellungen().catch(zeigeFehler);
 };
 document.getElementById("knopf-beitreten").onclick = function () {
-  hinweis("menue-hinweis", "Lobbys beitreten kommt bald (Online-Spiel).");
+  betreteLobby(document.getElementById("lobby-code-eingabe").value);
+};
+document.getElementById("knopf-freunde-menue").onclick = function () {
+  zeigeFreunde("menue");
+};
+
+// --- Freunde ---
+document.getElementById("knopf-id-kopieren-2").onclick = function () {
+  kopiere(profil.spielerId, this);
+};
+document.getElementById("knopf-freund-hinzufuegen").onclick = fuegeFreundHinzu;
+
+// --- Lobby-Code kopieren und Link teilen (Host und Mitspieler) ---
+document.getElementById("knopf-code-kopieren").onclick = function () {
+  kopiere(aktuelleLobby.code, this);
+};
+document.getElementById("knopf-link-teilen").onclick = function () {
+  teileLobby(aktuelleLobby.code, this);
+};
+document.getElementById("knopf-warteraum-code").onclick = function () {
+  kopiere(aktuelleLobby.code, this);
+};
+document.getElementById("knopf-warteraum-link").onclick = function () {
+  teileLobby(aktuelleLobby.code, this);
 };
 document.getElementById("knopf-daily").onclick = function () {
   hinweis("menue-hinweis", "Das Daily Quiz kommt bald.");
@@ -122,9 +151,6 @@ document.getElementById("knopf-spiel-starten").onclick = function () {
     return;
   }
   starteSpiel(einstellungen).catch(zeigeFehler);
-};
-document.getElementById("knopf-zurueck").onclick = function () {
-  zeigeBildschirm("menue");
 };
 
 // --- Ergebnis ---
@@ -140,8 +166,14 @@ if (profil) {
   profil.figur = Object.assign(neuesProfil().figur, profil.figur);
   profil.statistik = Object.assign(neuesProfil().statistik, profil.statistik);
   profil.deck = Object.assign(neuesProfil().deck, profil.deck);
+  // vorlage enthält schon eine neue spielerId, falls das alte Profil noch keine hatte – gleich speichern
+  speichereProfil();
   delete profil.ausgeruestet; // alte Version (nur 1 Emote/Spruch) – jetzt gibt es das Deck
 }
 
 // Beim Öffnen der Seite mit dem Startbildschirm beginnen
 zeigeBildschirm("start");
+if (einladungsCode) {
+  hinweis("start-hinweis", "Du wurdest in die Lobby " + einladungsCode +
+    " eingeladen! Melde dich an oder spiel als Gast – dann geht's direkt los.");
+}

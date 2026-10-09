@@ -89,7 +89,9 @@ function neuesProfil() {
     besitz: [],                      // gekaufte oder freigespielte Dinge (ids)
     deck: { emote: [], spruch: [] }, // je bis zu 4 fürs Online-Spiel
     haustier: null,                  // id des ausgerüsteten Haustiers
-    battlepass: { premium: false, abgeholt: { gratis: [], premium: [] } }
+    battlepass: { premium: false, abgeholt: { gratis: [], premium: [] } },
+    spielerId: neueSpielerId(),      // darüber fügen dich Freunde hinzu
+    freunde: []                      // [{ id, name }]
   };
 }
 
@@ -216,6 +218,7 @@ function zeigeHome() {
 function zeigeProfil() {
   zeigeFigurMitHaustier(document.getElementById("profil-figur"));
   document.getElementById("profil-name").textContent = profil.name;
+  document.getElementById("profil-id").textContent = profil.spielerId;
   document.getElementById("profil-info").hidden = true;
   document.getElementById("profil-hinweis").textContent = "";
   zeigeBildschirm("profil");

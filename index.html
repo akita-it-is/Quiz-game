@@ -7,7 +7,35 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Quiz</h1>
+  <!-- Kopfzeile: links Zurück, Mitte Titel (im Spiel mit i), rechts Pause und Einstellungen -->
+  <header id="kopfzeile">
+    <div class="kopf-links">
+      <button id="knopf-zurueck-oben" class="kopf-knopf" title="Zurück" hidden>←</button>
+    </div>
+    <div class="kopf-mitte">
+      <h1 id="kopf-titel">Quiz</h1>
+      <button id="knopf-spiel-info" class="kopf-knopf info-knopf" title="Spielerklärung" hidden>i</button>
+    </div>
+    <div class="kopf-rechts">
+      <button id="knopf-pause" class="kopf-knopf" title="Pause" hidden>⏸</button>
+      <button id="knopf-ton" class="kopf-knopf" title="Ton & Vibration" hidden>⚙</button>
+    </div>
+  </header>
+
+  <!-- Fenster für Infos, Pause und Einstellungen (liegt über allem) -->
+  <div id="fenster" class="fenster-hintergrund" hidden>
+    <div class="karte fenster">
+      <h2 id="fenster-titel"></h2>
+      <div id="fenster-inhalt"></div>
+      <button id="fenster-schliessen">Schließen</button>
+    </div>
+  </div>
+
+  <!-- Ladeanzeige -->
+  <div id="laden" class="fenster-hintergrund" hidden>
+    <div class="lade-kreis"></div>
+    <p>Lädt …</p>
+  </div>
 
   <!-- Bildschirm 1: Start / Anmelden -->
   <section id="start" class="bildschirm">
@@ -61,41 +89,56 @@
     <div class="karte">
       <div id="profil-figur" class="figur-gross"></div>
       <h2 id="profil-name"></h2>
-      <button id="knopf-profil-info">Profilinformationen</button>
+      <div class="id-zeile">
+        <span>Deine Spieler-ID: <strong id="profil-id"></strong></span>
+        <button id="knopf-id-kopieren" class="zweitrangig klein">📋 Kopieren</button>
+      </div>
+      <button id="knopf-freunde-profil">👥 Freunde</button>
+      <button id="knopf-profil-info" class="zweitrangig">Profilinformationen</button>
       <div id="profil-info" class="aufloesung" hidden></div>
       <button id="knopf-verbinden" class="zweitrangig">Account hier verbinden</button>
       <button id="knopf-einstellungen-profil" class="zweitrangig">Einstellungen</button>
       <p id="profil-hinweis" class="hinweis"></p>
-      <button class="zweitrangig zurueck-home">Zurück</button>
     </div>
   </section>
 
   <!-- Einstellungen -->
   <section id="app-einstellungen" class="bildschirm">
     <div class="karte">
-      <h2>Einstellungen</h2>
-      <p class="hinweis">Weitere Einstellungen kommen bald.</p>
+      <div id="ton-einstellungen"></div>
       <button id="knopf-profil-loeschen" class="gefahr">Profil löschen</button>
       <p class="hinweis">Löscht deinen Namen, Charakter, deine Statistik und Erfolge von diesem Gerät.
         Mit Account-System löscht dieser Knopf später auch dein Konto.</p>
-      <button id="knopf-einstellungen-zurueck" class="zweitrangig">Zurück</button>
+    </div>
+  </section>
+
+  <!-- Freunde -->
+  <section id="freunde" class="bildschirm">
+    <div class="karte">
+      <div class="id-zeile">
+        <span>Deine Spieler-ID: <strong class="eigene-id"></strong></span>
+        <button id="knopf-id-kopieren-2" class="zweitrangig klein">📋</button>
+      </div>
+      <div class="reihe">
+        <input id="freund-id-eingabe" type="text" placeholder="Spieler-ID deines Freundes" maxlength="9">
+        <button id="knopf-freund-hinzufuegen" class="klein">+ Hinzufügen</button>
+      </div>
+      <p id="freunde-hinweis" class="hinweis"></p>
+      <div id="freunde-liste"></div>
     </div>
   </section>
 
   <!-- Shop -->
   <section id="shop" class="bildschirm">
     <div class="karte">
-      <h2>Shop</h2>
       <div class="dollar-anzeige"></div>
       <div id="shop-liste" class="emote-gitter"></div>
-      <button class="zweitrangig zurueck-home">Zurück</button>
     </div>
   </section>
 
   <!-- Battlepass -->
   <section id="battlepass" class="bildschirm">
     <div class="karte">
-      <h2>⭐ Battlepass</h2>
       <div class="dollar-anzeige"></div>
       <p><strong id="bp-level"></strong></p>
       <div class="erfolg-balken"><div id="bp-balken"></div></div>
@@ -105,14 +148,12 @@
       <button id="knopf-bp-alle" hidden>🎁 Alle abholen</button>
       <div class="bp-zeile bp-kopf"><div class="bp-nummer">Lvl</div><div>Gratis</div><div>⭐ Premium</div></div>
       <div id="bp-liste"></div>
-      <button class="zweitrangig zurueck-home">Zurück</button>
     </div>
   </section>
 
   <!-- Inventar -->
   <section id="inventar" class="bildschirm">
     <div class="karte">
-      <h2>Inventar</h2>
       <button id="knopf-outfits" class="gross">👕 Outfits</button>
       <div class="reihe">
         <button id="knopf-emotes" class="gross zweitrangig">😄 Emotes</button>
@@ -122,7 +163,6 @@
         <button id="knopf-haustiere" class="gross zweitrangig">🐾 Haustiere</button>
         <button id="knopf-erfolge" class="gross zweitrangig">🏆 Erfolge</button>
       </div>
-      <button class="zweitrangig zurueck-home">Zurück</button>
     </div>
   </section>
 
@@ -132,16 +172,13 @@
       <h2 id="sammlung-titel"></h2>
       <p id="sammlung-hinweis" class="hinweis"></p>
       <div id="sammlung-liste" class="sammlung-liste"></div>
-      <button class="zweitrangig zurueck-inventar">Zurück</button>
     </div>
   </section>
 
   <!-- Erfolge -->
   <section id="erfolge" class="bildschirm">
     <div class="karte">
-      <h2>Erfolge</h2>
       <div id="erfolge-liste"></div>
-      <button class="zweitrangig zurueck-inventar">Zurück</button>
     </div>
   </section>
 
@@ -157,15 +194,51 @@
         <button id="knopf-beitreten" class="zweitrangig">Beitreten</button>
       </div>
       <button id="knopf-daily" class="zweitrangig">Daily – Tägliche Fragen</button>
+      <button id="knopf-freunde-menue" class="zweitrangig">👥 Freunde</button>
       <p id="menue-hinweis" class="hinweis"></p>
-      <button class="zweitrangig zurueck-home">Zurück</button>
+    </div>
+  </section>
+
+  <!-- Warteraum: wenn man einer Lobby beitritt -->
+  <section id="warteraum" class="bildschirm">
+    <div class="karte">
+      <div class="lobby-code-box">
+        <small>Lobby-Code</small>
+        <strong id="warteraum-code"></strong>
+        <div class="reihe">
+          <button id="knopf-warteraum-code" class="zweitrangig">📋 Code</button>
+          <button id="knopf-warteraum-link">🔗 Link teilen</button>
+        </div>
+      </div>
+      <h3>Spieler</h3>
+      <div id="warteraum-spieler"></div>
+      <p class="hinweis">Online-Lobbys kommen mit dem Account-System (Supabase).
+        Dann landest du hier mit deinen Freunden und wartest, bis der Host startet.</p>
     </div>
   </section>
 
   <!-- Bildschirm 3: Lobby-Einstellungen -->
   <section id="einstellungen" class="bildschirm">
     <div class="karte">
-      <h2>Lobby-Einstellungen</h2>
+      <!-- Lobby-Code mit Kopieren und Einladungslink -->
+      <div class="lobby-code-box">
+        <small>Lobby-Code</small>
+        <strong id="lobby-code"></strong>
+        <div class="reihe">
+          <button id="knopf-code-kopieren" class="zweitrangig">📋 Code</button>
+          <button id="knopf-link-teilen">🔗 Link teilen</button>
+        </div>
+      </div>
+
+      <h3>Spieler <span id="spieler-zahl"></span></h3>
+      <div id="spieler-liste"></div>
+      <p>Max. Spieler: <strong id="max-spieler-anzeige">4</strong></p>
+      <input id="max-spieler" type="range" min="2" max="6" value="4">
+
+      <h3>Freunde einladen</h3>
+      <div id="schnell-einladen"></div>
+
+      <h2>Spieleinstellungen</h2>
 
       <h3>Spielmodus</h3>
       <div class="reihe">
@@ -182,9 +255,8 @@
       <h3>Kategorien</h3>
       <div id="kategorien">Kategorien werden geladen …</div>
 
-      <p class="hinweis">Lobby-Code: <strong id="lobby-code"></strong> (Online-Spiel kommt bald)</p>
+      <p class="hinweis">Mit Freunden online spielen kommt mit dem Account-System (Supabase). Bis dahin spielst du allein.</p>
       <button id="knopf-spiel-starten">Spiel starten</button>
-      <button id="knopf-zurueck" class="zweitrangig">Zurück</button>
     </div>
   </section>
 
@@ -217,6 +289,8 @@
 
   <!-- Papa Parse liegt direkt im Projekt (lib/), damit keine fremde Seite geladen werden muss -->
   <script src="lib/papaparse.min.js"></script>
+  <script src="oberflaeche.js"></script>
+  <script src="ton.js"></script>
   <script>const spiele = {};</script>
   <script src="spiele/multiple-choice.js"></script>
   <script src="spiele/wahr-falsch.js"></script>
@@ -231,6 +305,7 @@
   <script src="sammlung.js"></script>
   <script src="inventar.js"></script>
   <script src="wirtschaft.js"></script>
+  <script src="lobby.js"></script>
   <script src="einstellungen.js"></script>
   <script src="bildschirme.js"></script>
 </body>

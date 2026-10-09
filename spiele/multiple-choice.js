@@ -1,5 +1,7 @@
 spiele.multipleChoice = {
   name: "Multiple Choice",
+  // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
+  beschreibung: "Wähle aus vier Antworten die richtige aus. Jede richtige Antwort gibt 1 Punkt.",
   fragenProRunde: 5,
   fragenQuelle: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR8OYp4uAniqpn3dj2qzpyahA2Rg59EVSV1kLrskYtLjICQOwfTqm34D3A5aMVUbIo6bJUKCznYyieT/pub?gid=0&single=true&output=csv",
 

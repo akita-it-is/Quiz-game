@@ -19,8 +19,14 @@ async function ladeFragen(spiel) {
     fragenSpeicher[spiel.name] = fragen;
     return fragen;
   }
-  const antwort = await fetch(spiel.fragenQuelle);
-  const text = await antwort.text();
+  ladenStart();
+  let text;
+  try {
+    const antwort = await fetch(spiel.fragenQuelle);
+    text = await antwort.text();
+  } finally {
+    ladenEnde();
+  }
   const tabelle = Papa.parse(text, {
     header: true,
     skipEmptyLines: true,
@@ -98,7 +104,10 @@ async function starteSpiel(einstellungen) {
     rundenSiege: 0,
     letzteSpielart: null,
     benutzteFragen: new Set(),
-    verlauf: []   // alle gespielten Fragen für den Endbildschirm
+    verlauf: [],      // alle gespielten Fragen für den Endbildschirm
+    pausiert: false,
+    wartend: [],      // was nach der Pause weiterlaufen soll
+    abgebrochen: false
   };
   zeigeBildschirm("spiel");
   await naechsteRunde();
@@ -143,8 +152,105 @@ async function naechsteRunde() {
   spielstand.rundenPunkte = 0;
   spielstand.rundenMaxPunkte = 0;
 
-  zeigeFrage();
+  zeigeIntro();
 }
+
+// 2 Sekunden lang: Name der Spielart und kurze Erklärung, dann geht's los
+function zeigeIntro() {
+  stoppeTimer();
+  const spiel = spielstand.spiel;
+  setzeTitel(spiel.name);
+  document.getElementById("spiel-info").textContent = "Runde " + spielstand.runde;
+
+  const spielfeld = document.getElementById("spielfeld");
+  spielfeld.classList.remove("ausblenden");
+  spielfeld.innerHTML = "";
+  const karte = document.createElement("div");
+  karte.className = "intro-karte";
+  const titel = document.createElement("h2");
+  titel.textContent = spiel.name;
+  const text = document.createElement("p");
+  text.textContent = spiel.beschreibung || "";
+  karte.appendChild(titel);
+  karte.appendChild(text);
+  spielfeld.appendChild(karte);
+
+  setTimeout(function () { nachPause(zeigeFrage); }, 2000);
+}
+
+// ===== Pause =====
+
+// Führt etwas aus – oder wartet damit, bis die Pause vorbei ist.
+// Ist das Spiel abgebrochen, passiert nichts mehr.
+function nachPause(aktion) {
+  if (!spielstand || spielstand.abgebrochen) {
+    return;
+  }
+  if (spielstand.pausiert) {
+    spielstand.wartend.push(aktion);
+  } else {
+    aktion();
+  }
+}
+
+// Hält das Spiel an. "fensterTitel"/"fensterInhalt": was im Pause-Fenster steht.
+function pausiereSpiel(fensterTitel, fensterInhalt, knopfText) {
+  if (!spielstand || spielstand.pausiert || spielstand.abgebrochen) {
+    return;
+  }
+  spielstand.pausiert = true;
+  merkeTimer();
+  zeigeFenster(fensterTitel, fensterInhalt, knopfText || "▶ Weiter", fortsetzeSpiel);
+}
+
+function fortsetzeSpiel() {
+  if (!spielstand || !spielstand.pausiert) {
+    return;
+  }
+  spielstand.pausiert = false;
+  setzeTimerFort();
+  const wartend = spielstand.wartend;
+  spielstand.wartend = [];
+  wartend.forEach(function (aktion) { aktion(); });
+}
+
+// Inhalt des Pause-Fensters (mit "Neu verbinden")
+function pauseInhalt(text) {
+  const box = document.createElement("div");
+  const p = document.createElement("p");
+  p.textContent = text;
+  const meldung = document.createElement("p");
+  meldung.className = "hinweis";
+  const neu = document.createElement("button");
+  neu.className = "zweitrangig";
+  neu.textContent = "🔄 Neu verbinden";
+  neu.onclick = function () {
+    // Im Online-Spiel verbindet das wieder mit der Lobby. Allein ist keine Verbindung nötig.
+    meldung.textContent = navigator.onLine
+      ? "✓ Verbunden. (Im Online-Spiel holt dich dieser Knopf zurück in die Lobby.)"
+      : "Noch keine Internetverbindung – versuch es gleich nochmal.";
+  };
+  box.appendChild(p);
+  box.appendChild(neu);
+  box.appendChild(meldung);
+  return box;
+}
+
+// Bricht das laufende Spiel ab (Zurück-Knopf)
+function brichSpielAb() {
+  stoppeTimer();
+  if (spielstand) {
+    spielstand.abgebrochen = true;
+  }
+  document.getElementById("fenster").hidden = true;
+}
+
+// Internet weg? Dann automatisch pausieren.
+window.addEventListener("offline", function () {
+  if (aktuellerBildschirm === "spiel") {
+    pausiereSpiel("📡 Verbindung verloren", pauseInhalt("Das Spiel ist pausiert, bis du wieder verbunden bist."));
+  }
+});
 
 // Zeigt die aktuelle Frage der Runde an
 function zeigeFrage() {
@@ -213,6 +319,13 @@ function abschliessen(punkte, maxPunkte, fertig) {
     anzeige.classList.add("hochzaehlen");
   }
 
+  // Ton und Vibration
+  if (punkte > 0) {
+    richtigTon();
+  } else {
+    falschTon();
+  }
+
   // Für Statistik und Erfolge zählen (als richtig zählt alles mit Punkten)
   zaehleAntwort(punkte > 0);
 
@@ -254,17 +367,20 @@ function abschliessen(punkte, maxPunkte, fertig) {
     };
     spielfeld.appendChild(knopf);
   } else {
-    // Ohne Infobox oder im Mehrspieler-Modus: automatisch weiter
-    setTimeout(weiter, frage.info ? 2000 : 1500);
+    // Ohne Infobox oder im Mehrspieler-Modus: automatisch weiter (nicht während einer Pause)
+    setTimeout(function () { nachPause(weiter); }, frage.info ? 2000 : 1500);
   }
 }
 
 let timerId = null;
+let timerInfo = null;   // { sekunden, zeitAbgelaufen, ende, rest } – fürs Pausieren
 
-// Zählt die Sekunden herunter und ruft "zeitAbgelaufen" auf, wenn die Zeit um ist
-function starteTimer(sekunden, zeitAbgelaufen) {
+// Zählt die Sekunden herunter und ruft "zeitAbgelaufen" auf, wenn die Zeit um ist.
+// "restMs": nach einer Pause nur noch so viele Millisekunden (der Balken bleibt im Verhältnis)
+function starteTimer(sekunden, zeitAbgelaufen, restMs) {
   stoppeTimer();
-  const ende = Date.now() + sekunden * 1000;
+  const ende = Date.now() + (restMs === undefined ? sekunden * 1000 : restMs);
+  timerInfo = { sekunden: sekunden, zeitAbgelaufen: zeitAbgelaufen, ende: ende, rest: null };
   const balken = document.getElementById("timer-balken");
   const zahl = document.getElementById("timer-zahl");
   document.getElementById("timer").style.display = "block";
@@ -285,6 +401,21 @@ function starteTimer(sekunden, zeitAbgelaufen) {
   timerId = setInterval(aktualisiere, 100);
 }
 
+// Pause: Restzeit merken (nur wenn der Timer gerade läuft)
+function merkeTimer() {
+  if (timerId && timerInfo) {
+    timerInfo.rest = Math.max(0, timerInfo.ende - Date.now());
+    pausiereTimer();
+  }
+}
+
+// Nach der Pause mit der gemerkten Restzeit weitermachen
+function setzeTimerFort() {
+  if (timerInfo && timerInfo.rest !== null) {
+    starteTimer(timerInfo.sekunden, timerInfo.zeitAbgelaufen, timerInfo.rest);
+  }
+}
+
 // Hält den Timer an, er bleibt aber sichtbar stehen
 function pausiereTimer() {
   clearInterval(timerId);
@@ -295,6 +426,7 @@ function pausiereTimer() {
 function stoppeTimer() {
   clearInterval(timerId);
   timerId = null;
+  timerInfo = null;
   document.getElementById("timer").style.display = "none";
   document.getElementById("timer-zahl").textContent = "";
 }
@@ -309,13 +441,15 @@ function aktualisiereInfo() {
     rundenText = rundenText + " · Rundensiege: " + spielstand.rundenSiege + " von " + e.anzahl;
   }
   document.getElementById("spiel-info").textContent =
-    rundenText + " · " + spielstand.spiel.name +
-    " · Frage " + (spielstand.frageNummer + 1) + "/" + spielstand.rundenFragen.length;
+    rundenText + " · Frage " + (spielstand.frageNummer + 1) + "/" + spielstand.rundenFragen.length;
   document.getElementById("punkte").textContent = "Punkte: " + spielstand.punkte;
 }
 
 // Wird von der Spielart aufgerufen, wenn eine Frage beantwortet wurde
 function frageBeantwortet(erreichtePunkte) {
+  if (!spielstand || spielstand.abgebrochen) {
+    return;
+  }
   document.getElementById("spielfeld").classList.remove("ausblenden");
   spielstand.punkte = spielstand.punkte + erreichtePunkte;
   spielstand.rundenPunkte = spielstand.rundenPunkte + erreichtePunkte;

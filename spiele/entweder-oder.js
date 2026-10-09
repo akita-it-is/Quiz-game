@@ -1,5 +1,7 @@
 spiele.entwederOder = {
   name: "Entweder oder",
+  // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
+  beschreibung: "Zu welcher der beiden Möglichkeiten passt die Aussage? Ein Fehler und du bist raus. Schaffst du alle 5, gibt es 1 Punkt.",
   fragenProRunde: 3,
   // Dieses Blatt braucht keine Spalte "text" (die Überschrift entsteht aus option1 und option2)
   ohneTextSpalte: true,
