@@ -135,7 +135,19 @@ button.pfeil { width: 40px; flex: 0 0 40px; padding: 8px 0; margin: 0; }
 .teil-name { flex: 1; font-size: 14px; line-height: 1.2; }
 .teil-name small { color: #b8b2d6; }
 .kommt-bald { font-size: 22px; margin: 40px 0; }
-.sammlung-liste button.ausgeruestet { background: #7c5cff; }
+/* Sammlung: Emotes als Gitter, Sprüche als Liste, Rahmenfarbe nach Seltenheit */
+.emote-gitter { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.sammel-karte { margin: 6px 0; background: #48426a; border: 3px solid #8a84a8; padding: 10px 6px; }
+.emote-gitter .sammel-karte { margin: 0; }
+.sammel-karte small { display: block; color: #d8d4ec; font-size: 12px; margin-top: 4px; }
+.sammel-bild { font-size: 40px; height: 56px; display: flex; align-items: center; justify-content: center; }
+.sammel-bild img { max-width: 56px; max-height: 56px; }
+.sammel-name { font-size: 15px; }
+.seltenheit-selten { border-color: #3b82f6; }
+.seltenheit-episch { border-color: #a855f7; }
+.seltenheit-legendär { border-color: #f5c542; }
+.sammel-karte.ausgeruestet { background: #7c5cff; }
+.sammel-karte.gesperrt { opacity: 0.45; filter: grayscale(0.8); }
 
 button.gefahr { background: #e5484d; }
 .fusszeile { margin-top: 30px; font-size: 14px; color: #b8b2d6; }
