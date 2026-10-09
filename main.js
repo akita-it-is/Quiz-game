@@ -12,7 +12,17 @@ async function ladeFragen(spiel) {
   }
   const antwort = await fetch(spiel.fragenQuelle);
   const text = await antwort.text();
-  const tabelle = Papa.parse(text, { header: true, skipEmptyLines: true });
+  const tabelle = Papa.parse(text, {
+    header: true,
+    skipEmptyLines: true,
+    // Spaltennamen ohne Leerzeichen und in Kleinbuchstaben ("Text " wird zu "text")
+    transformHeader: function (spalte) { return spalte.trim().toLowerCase(); }
+  });
+  // Ohne Spalte "text" kann keine Frage angezeigt werden
+  if (!tabelle.meta.fields || !tabelle.meta.fields.includes("text")) {
+    throw new Error("In der Tabelle für " + spiel.name + " fehlt die Spalte \"text\". " +
+      "Gefundene Spalten: " + (tabelle.meta.fields || []).join(", "));
+  }
   const fragen = tabelle.data.map(spiel.zeileZuFrage);
   fragenSpeicher[spiel.name] = fragen;
   return fragen;
@@ -20,7 +30,8 @@ async function ladeFragen(spiel) {
 
 // Wählt Spielart und Frage und startet die Runde
 async function starteRunde() {
-  const alleSpiele = Object.values(spiele);
+  // Nur Spielarten nehmen, bei denen schon ein Tabellen-Link eingetragen ist
+  const alleSpiele = Object.values(spiele).filter(function (s) { return s.fragenQuelle; });
   if (alleSpiele.length === 0) {
     throw new Error("Keine Spielart angemeldet");
   }
