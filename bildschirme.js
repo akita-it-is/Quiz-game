@@ -161,6 +161,10 @@ if (profil) {
   profil = Object.assign(vorlage, profil);
   delete profil.figur; // altes Figur-/Outfit-System – jetzt gibt es Tier-Charaktere mit Skins
   profil.skins = profil.skins || {};
+  // Haustiere sind jetzt Insekten – ein altes Haustier (Hund, Katze …) gibt es nicht mehr
+  if (profil.haustier && !HAUSTIERE.some(function (h) { return h.id === profil.haustier; })) {
+    profil.haustier = null;
+  }
   // Battlepass-Belohnung war früher die "Goldene Rüstung" – jetzt ist es der Königs-Skin
   profil.besitz = profil.besitz.map(function (id) { return id === "bp-ruestung" ? "koenig" : id; });
   profil.statistik = Object.assign(neuesProfil().statistik, profil.statistik);
