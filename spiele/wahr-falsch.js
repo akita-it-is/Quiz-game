@@ -1,5 +1,6 @@
 spiele.wahrFalsch = {
   name: "Wahr oder Falsch",
+  fragenProRunde: 5,
   // CSV-Link des Tabellenblatts "wahr-falsch" (gleicher Link wie bei Multiple Choice, nur andere gid)
   // Steht hier "", wird diese Spielart einfach übersprungen.
   fragenQuelle: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR8OYp4uAniqpn3dj2qzpyahA2Rg59EVSV1kLrskYtLjICQOwfTqm34D3A5aMVUbIo6bJUKCznYyieT/pub?gid=1479838760&single=true&output=csv",
