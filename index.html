@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Die Tafelrunde – Quiz</title>
   <link rel="stylesheet" href="style.css">
+  <!-- Als App installierbar (PWA) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#1e1b2e">
+  <link rel="icon" type="image/png" href="bilder/icons/favicon-48.png">
+  <link rel="apple-touch-icon" href="bilder/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Tafelrunde">
 </head>
 <body>
   <!-- Kopfzeile: links Zurück, Mitte Titel (im Spiel mit i), rechts Pause und Einstellungen -->
@@ -81,6 +88,7 @@
         <button id="knopf-battlepass" class="gross bp-knopf">⭐ Pass</button>
       </div>
       <button id="knopf-inventar" class="gross zweitrangig">Inventar</button>
+      <button id="knopf-installieren" class="zweitrangig" hidden>📲 App installieren</button>
     </div>
   </section>
 
@@ -308,5 +316,6 @@
   <script src="lobby.js"></script>
   <script src="einstellungen.js"></script>
   <script src="bildschirme.js"></script>
+  <script src="pwa.js"></script>
 </body>
 </html>
