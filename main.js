@@ -142,7 +142,9 @@ function zeigeFrage() {
   // Eine Spielart kann eine eigene Funktion für "Zeit abgelaufen" zurückgeben
   // (z. B. Schätzfrage: das bisher Eingetippte trotzdem werten)
   const beiZeitAblauf = spielstand.spiel.zeige(frage, document.getElementById("spielfeld"), fertig);
-  starteTimer(spielstand.einstellungen.sekunden, function () {
+  // Manche Spielarten haben eine feste Zeit (z. B. Kärtchen: immer 60 Sekunden)
+  const sekunden = spielstand.spiel.festeZeit || spielstand.einstellungen.sekunden;
+  starteTimer(sekunden, function () {
     if (typeof beiZeitAblauf === "function") {
       beiZeitAblauf();
     } else {

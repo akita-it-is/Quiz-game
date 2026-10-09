@@ -1,6 +1,8 @@
 spiele.kaertchen = {
   name: "Kärtchen",
   fragenProRunde: 3,
+  // Feste Zeit pro Frage – gilt immer, egal was in der Lobby eingestellt ist
+  festeZeit: 60,
   // CSV-Link des Tabellenblatts "kaertchen" (gleicher Link wie bei Multiple Choice, nur andere gid)
   // Steht hier "", wird diese Spielart einfach übersprungen.
   fragenQuelle: "",
