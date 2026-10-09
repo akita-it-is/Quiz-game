@@ -20,7 +20,7 @@ const BATTLEPASS = {
 // Was gibt es auf welchem Level? Platzhalter: überall 1 $, Premium Level 50 = Skin
 function battlepassBelohnung(level, leiste) {
   if (leiste === "premium" && level === BATTLEPASS.level) {
-    return { item: "bp-ruestung", text: "👑 Goldene Rüstung" };
+    return { item: "koenig", text: "👑 Königs-Skin" };
   }
   return { dollar: 1, text: "1 $" };
 }
@@ -170,64 +170,131 @@ function kaufeBattlepass() {
 }
 
 // ===== Shop =====
-// Zeigt alles, was in sammlung.js oder bei den Outfits "freischaltung: shop" und einen Preis hat.
+// Zeigt alles mit "freischaltung: shop" und Preis – nach Bereichen sortiert.
+// Antippen öffnet ein Fenster mit Infos und dem Kaufen-Knopf.
 
-function shopAngebote() {
-  const angebote = [];
-  EMOTES.forEach(function (e) { angebote.push({ eintrag: e, art: "Emote", bild: e.bild, name: e.name }); });
-  SPRUECHE.forEach(function (s) { angebote.push({ eintrag: s, art: "Spruch", bild: "💬", name: s.text }); });
-  HAUSTIERE.forEach(function (h) { angebote.push({ eintrag: h, art: "Haustier", bild: h.bild, name: h.name }); });
-  Object.keys(FIGUR_TEILE).forEach(function (teil) {
-    FIGUR_TEILE[teil].auswahl.forEach(function (o) {
-      angebote.push({ eintrag: o, art: "Outfit", bild: "👕", name: o.name });
-    });
+function shopBereiche() {
+  // Skins nur für Charaktere, die man hat (oder Skins, die zu allen passen)
+  const meineSkins = SKINS.filter(function (skin) {
+    return skin.charakter === "alle" || profil.besitz.includes(skin.charakter);
   });
-  return angebote.filter(function (a) { return a.eintrag.freischaltung === "shop" && a.eintrag.preis; });
+  return [
+    { titel: "🎭 Charaktere", eintraege: CHARAKTERE.map(function (c) {
+      return { eintrag: c, art: "Charakter", name: c.name, bildHtml: charakterBild(c.id, null) };
+    }) },
+    { titel: "✨ Skins für deine Charaktere", eintraege: meineSkins.map(function (skin) {
+      const fuer = skin.charakter === "alle" ? profil.charakter : skin.charakter;
+      const c = findeCharakter(fuer);
+      return { eintrag: skin, art: "Skin", name: skin.name + (c ? " – " + c.name : ""),
+        bildHtml: charakterBild(fuer, skin.id) };
+    }) },
+    { titel: "😄 Emotes", eintraege: EMOTES.map(function (e) {
+      return { eintrag: e, art: "Emote", name: e.name, bild: e.bild };
+    }) },
+    { titel: "💬 Sprüche", eintraege: SPRUECHE.map(function (sp) {
+      return { eintrag: sp, art: "Spruch", name: sp.text, bild: "💬" };
+    }) },
+    { titel: "🐾 Haustiere", eintraege: HAUSTIERE.map(function (h) {
+      return { eintrag: h, art: "Haustier", name: h.name, bild: h.bild };
+    }) }
+  ].map(function (bereich) {
+    bereich.eintraege = bereich.eintraege.filter(function (a) {
+      return a.eintrag.freischaltung === "shop" && a.eintrag.preis;
+    });
+    return bereich;
+  }).filter(function (bereich) { return bereich.eintraege.length > 0; });
+}
+
+// Bild eines Angebots als Element
+function angebotsBild(angebot) {
+  const bild = document.createElement("div");
+  if (angebot.bildHtml) {
+    bild.className = "karten-bild";
+    bild.innerHTML = angebot.bildHtml;
+  } else {
+    bild.className = "sammel-bild";
+    bild.appendChild(emoteBild({ bild: angebot.bild, name: angebot.name }));
+  }
+  return bild;
 }
 
 function zeigeShop() {
   zeigeDollar();
-  const liste = document.getElementById("shop-liste");
-  liste.innerHTML = "";
-  shopAngebote().forEach(function (angebot) {
-    const e = angebot.eintrag;
-    const karte = document.createElement("div");
-    karte.className = "sammel-karte shop-karte seltenheit-" + e.seltenheit;
-
-    const bild = document.createElement("div");
-    bild.className = "sammel-bild";
-    bild.appendChild(emoteBild({ bild: angebot.bild, name: angebot.name }));
-    const name = document.createElement("div");
-    name.className = "sammel-name";
-    name.textContent = angebot.name;
-    const art = document.createElement("small");
-    art.textContent = angebot.art + " · " + e.seltenheit;
-
-    const knopf = document.createElement("button");
-    if (besitzt(e)) {
-      knopf.textContent = "✓ Gekauft";
-      knopf.disabled = true;
-    } else {
-      knopf.textContent = e.preis + " $";
-      knopf.disabled = profil.dollar < e.preis;
-      knopf.onclick = function () { kaufe(e, angebot.name); };
-    }
-
-    karte.appendChild(bild);
-    karte.appendChild(name);
-    karte.appendChild(art);
-    karte.appendChild(knopf);
-    liste.appendChild(karte);
+  const box = document.getElementById("shop-liste");
+  box.innerHTML = "";
+  shopBereiche().forEach(function (bereich) {
+    const titel = document.createElement("h3");
+    titel.textContent = bereich.titel;
+    const gitter = document.createElement("div");
+    gitter.className = "emote-gitter";
+    bereich.eintraege.forEach(function (angebot) {
+      const e = angebot.eintrag;
+      const gekauft = besitzt(e);
+      const karte = document.createElement("button");
+      karte.className = "sammel-karte shop-karte seltenheit-" + e.seltenheit + (gekauft ? " gekauft" : "");
+      karte.appendChild(angebotsBild(angebot));
+      const name = document.createElement("div");
+      name.className = "sammel-name";
+      name.textContent = angebot.name;
+      const preis = document.createElement("small");
+      preis.textContent = gekauft ? "✓ Gekauft" : e.preis + " $";
+      karte.appendChild(name);
+      karte.appendChild(preis);
+      karte.onclick = function () { zeigeShopDetail(angebot); };
+      gitter.appendChild(karte);
+    });
+    box.appendChild(titel);
+    box.appendChild(gitter);
   });
   zeigeBildschirm("shop");
 }
 
+// Fenster mit großem Bild, Infos, Text und Kaufen-Knopf
+function zeigeShopDetail(angebot) {
+  const e = angebot.eintrag;
+  const box = document.createElement("div");
+  box.className = "shop-detail";
+  const bild = angebotsBild(angebot);
+  bild.classList.add("detail-bild");
+  box.appendChild(bild);
+
+  const infos = document.createElement("p");
+  infos.className = "hinweis";
+  if (angebot.art === "Charakter") {
+    infos.textContent = e.tier + " · Spezialgebiet: " + kategorieText(e.kategorie);
+  } else {
+    infos.textContent = angebot.art + " · " + e.seltenheit;
+  }
+  box.appendChild(infos);
+  if (e.text && angebot.art === "Charakter") {
+    const text = document.createElement("p");
+    text.className = "detail-text";
+    text.textContent = e.text;
+    box.appendChild(text);
+  }
+
+  const knopf = document.createElement("button");
+  if (besitzt(e)) {
+    knopf.textContent = "✓ Schon in deinem Inventar";
+    knopf.disabled = true;
+  } else if (profil.dollar < e.preis) {
+    knopf.textContent = e.preis + " $ – dir fehlen " + (e.preis - profil.dollar) + " $";
+    knopf.disabled = true;
+  } else {
+    knopf.textContent = "Kaufen für " + e.preis + " $";
+    knopf.onclick = function () { kaufe(e, angebot.name); };
+  }
+  box.appendChild(knopf);
+  zeigeFenster(angebot.name, box);
+}
+
 function kaufe(eintrag, name) {
-  if (profil.dollar < eintrag.preis || !confirm(name + " für " + eintrag.preis + " $ kaufen?")) {
+  if (profil.dollar < eintrag.preis || besitzt(eintrag)) {
     return;
   }
   profil.dollar = profil.dollar - eintrag.preis;
   profil.besitz.push(eintrag.id);
   speichereProfil();
+  zeigeFenster("🎉 Gekauft!", name + " gehört jetzt dir. Du findest es in deinem Inventar.");
   zeigeShop();
 }

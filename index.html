@@ -65,11 +65,16 @@
         <div id="charakter-name" class="name-feld"></div>
         <button id="knopf-neuer-name" class="zweitrangig klein" title="Neuer Name">🎲</button>
       </div>
-      <div class="charakter-bereich">
-        <div id="charakter-figur" class="figur-gross"></div>
-        <div id="charakter-auswahl"></div>
-      </div>
+      <p id="charakter-hinweis" class="hinweis"></p>
+      <!-- Vorschau: großes Bild, Name, Tier, Spezialgebiet, Text -->
+      <div id="charakter-vorschau" class="charakter-vorschau"></div>
       <button id="knopf-charakter-fertig">Los geht's</button>
+      <div id="skin-bereich">
+        <h3>Skins</h3>
+        <div id="skin-liste" class="emote-gitter"></div>
+      </div>
+      <h3>Charaktere</h3>
+      <div id="charakter-liste" class="charakter-gitter"></div>
     </div>
   </section>
 
@@ -140,7 +145,7 @@
   <section id="shop" class="bildschirm">
     <div class="karte">
       <div class="dollar-anzeige"></div>
-      <div id="shop-liste" class="emote-gitter"></div>
+      <div id="shop-liste"></div>
     </div>
   </section>
 
@@ -162,7 +167,7 @@
   <!-- Inventar -->
   <section id="inventar" class="bildschirm">
     <div class="karte">
-      <button id="knopf-outfits" class="gross">👕 Outfits</button>
+      <button id="knopf-outfits" class="gross">🎭 Charaktere & Skins</button>
       <div class="reihe">
         <button id="knopf-emotes" class="gross zweitrangig">😄 Emotes</button>
         <button id="knopf-sprueche" class="gross zweitrangig">💬 Sprüche</button>
@@ -311,6 +316,7 @@
   <script src="profil.js"></script>
   <script src="erfolge.js"></script>
   <script src="sammlung.js"></script>
+  <script src="charaktere.js"></script>
   <script src="inventar.js"></script>
   <script src="wirtschaft.js"></script>
   <script src="lobby.js"></script>

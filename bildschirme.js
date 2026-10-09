@@ -25,9 +25,12 @@ document.getElementById("knopf-google").onclick = function () {
   hinweis("start-hinweis", "Google-Anmeldung kommt bald – spiel solange als Gast.");
 };
 document.getElementById("knopf-gast").onclick = function () {
-  if (profil) {
+  if (profil && profil.charakter) {
     // Schon mal als Gast gespielt: direkt zur Startseite (oder in die Lobby, falls eingeladen)
     nachAnmeldung();
+  } else if (profil) {
+    // Altes Profil aus der Zeit vor den Tier-Charakteren: einmal Charakter aussuchen
+    oeffneCharakter("home");
   } else {
     // Zum ersten Mal: Charakter wählen, zufälliger Name
     profil = neuesProfil();
@@ -40,14 +43,7 @@ document.getElementById("knopf-neuer-name").onclick = function () {
   profil.name = zufallsName();
   zeigeCharakter();
 };
-document.getElementById("knopf-charakter-fertig").onclick = function () {
-  speichereProfil();
-  if (charakterZurueckZu === "inventar") {
-    zeigeBildschirm("inventar");
-  } else {
-    nachAnmeldung();
-  }
-};
+document.getElementById("knopf-charakter-fertig").onclick = charakterFertig;
 
 // --- Startseite ---
 document.getElementById("knopf-profilbild").onclick = zeigeProfil;
@@ -163,7 +159,10 @@ document.getElementById("knopf-zum-menue").onclick = zeigeHome;
 if (profil) {
   const vorlage = neuesProfil();
   profil = Object.assign(vorlage, profil);
-  profil.figur = Object.assign(neuesProfil().figur, profil.figur);
+  delete profil.figur; // altes Figur-/Outfit-System – jetzt gibt es Tier-Charaktere mit Skins
+  profil.skins = profil.skins || {};
+  // Battlepass-Belohnung war früher die "Goldene Rüstung" – jetzt ist es der Königs-Skin
+  profil.besitz = profil.besitz.map(function (id) { return id === "bp-ruestung" ? "koenig" : id; });
   profil.statistik = Object.assign(neuesProfil().statistik, profil.statistik);
   profil.deck = Object.assign(neuesProfil().deck, profil.deck);
   // vorlage enthält schon eine neue spielerId, falls das alte Profil noch keine hatte – gleich speichern

@@ -92,7 +92,8 @@ function zeigeLobbyDetails() {
 }
 
 function ichAlsSpieler(istHost) {
-  return { id: profil.spielerId, name: profil.name, figur: profil.figur, host: Boolean(istHost) };
+  return { id: profil.spielerId, name: profil.name, charakter: profil.charakter,
+    skin: profil.skins[profil.charakter] || null, host: Boolean(istHost) };
 }
 
 // Spielerliste mit Profilbild. Der Host sieht bei den anderen einen Rauswerfen-Knopf.
@@ -103,7 +104,7 @@ function zeigeSpielerliste(box, lobby) {
     zeile.className = "spieler-zeile";
     const bild = document.createElement("div");
     bild.className = "spieler-bild";
-    bild.innerHTML = zeichneFigur(s.figur, true);
+    bild.innerHTML = charakterBild(s.charakter, s.skin);
     const name = document.createElement("span");
     name.textContent = (s.host ? "👑 " : "") + s.name + (s.id === profil.spielerId ? " (du)" : "");
     zeile.appendChild(bild);

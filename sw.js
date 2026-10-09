@@ -4,7 +4,7 @@
 //
 // Wenn neue Dateien dazukommen, hier in die Liste eintragen und VERSION um 1 erhöhen.
 
-const VERSION = 1;
+const VERSION = 2;
 const SPEICHER = "tafelrunde-v" + VERSION;
 
 const DATEIEN = [
@@ -15,6 +15,7 @@ const DATEIEN = [
   "bilder/icons/icon-512.png",
   "bilder/icons/icon-maskable-512.png",
   "bildschirme.js",
+  "charaktere.js",
   "datenschutz.html",
   "einstellungen.js",
   "erfolge.js",
