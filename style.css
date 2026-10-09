@@ -7,6 +7,9 @@ body {
   color: #f2f0fa;
 }
 
+/* Versteckte Elemente wirklich verstecken (auch Knöpfe) */
+[hidden] { display: none !important; }
+
 /* Nur der Bildschirm mit der Klasse "aktiv" ist sichtbar */
 .bildschirm { display: none; max-width: 520px; margin: 0 auto; }
 .bildschirm.aktiv { display: block; animation: einblenden 0.3s ease-out; }
@@ -135,9 +138,44 @@ button.pfeil { width: 40px; flex: 0 0 40px; padding: 8px 0; margin: 0; }
 .teil-name { flex: 1; font-size: 14px; line-height: 1.2; }
 .teil-name small { color: #b8b2d6; }
 .kommt-bald { font-size: 22px; margin: 40px 0; }
-.sammlung-liste button.ausgeruestet { background: #7c5cff; }
+/* Sammlung: Emotes als Gitter, Sprüche als Liste, Rahmenfarbe nach Seltenheit */
+.emote-gitter { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.sammel-karte { margin: 6px 0; background: #48426a; border: 3px solid #8a84a8; padding: 10px 6px; }
+.emote-gitter .sammel-karte { margin: 0; }
+.sammel-karte small { display: block; color: #d8d4ec; font-size: 12px; margin-top: 4px; }
+.sammel-bild { font-size: 40px; height: 56px; display: flex; align-items: center; justify-content: center; }
+.sammel-bild img { max-width: 56px; max-height: 56px; }
+.sammel-name { font-size: 15px; }
+.seltenheit-selten { border-color: #3b82f6; }
+.seltenheit-episch { border-color: #a855f7; }
+.seltenheit-legendär { border-color: #f5c542; }
+.sammel-karte.ausgeruestet { background: #7c5cff; }
+.sammel-karte.gesperrt { opacity: 0.45; filter: grayscale(0.8); }
 
 button.gefahr { background: #e5484d; }
+
+/* Spielgeld, Shop und Battlepass */
+.dollar-anzeige { text-align: right; font-weight: bold; color: #f5c542; margin: 4px 0; }
+.shop-reihe > :first-child { flex: 7; }
+.shop-reihe > :last-child { flex: 3; }
+button.bp-knopf { background: linear-gradient(135deg, #f5c542, #e8962e); color: #1e1b2e; }
+.shop-karte { display: flex; flex-direction: column; border-radius: 12px; }
+.shop-karte button { margin: 8px 0 0; padding: 8px; font-size: 15px; }
+.belohnung { color: #f5c542; font-weight: bold; white-space: pre-line; }
+#bp-balken { height: 100%; background: #f5c542; }
+.bp-zeile { display: grid; grid-template-columns: 44px 1fr 1fr; gap: 6px; align-items: center; margin: 6px 0; opacity: 0.6; }
+.bp-zeile.erreicht, .bp-kopf { opacity: 1; }
+.bp-kopf { font-size: 14px; color: #b8b2d6; }
+.bp-nummer { font-weight: bold; }
+button.bp-feld { margin: 0; padding: 10px 4px; font-size: 14px; background: #48426a; }
+button.bp-feld.premium { background: #5a4a2a; }
+button.bp-feld.abholbar { background: #2fb36d; animation: leuchten 1.4s ease-in-out infinite; }
+button.bp-feld.abgeholt { opacity: 0.6; }
+
+/* Haustier sitzt unten rechts neben dem Charakter */
+.figur-gross { position: relative; }
+.haustier { position: absolute; right: 0; bottom: 0; font-size: 42px; }
+.haustier img { width: 56px; height: 56px; }
 .fusszeile { margin-top: 30px; font-size: 14px; color: #b8b2d6; }
 .fusszeile a { color: #b8b2d6; }
 
@@ -243,3 +281,6 @@ button.gefahr { background: #e5484d; }
 /* Seiten Impressum und Datenschutz */
 .rechtstext { max-width: 720px; margin: 0 auto; text-align: left; line-height: 1.5; }
 .rechtstext a { color: #b8a8ff; }
+@keyframes leuchten {
+  50% { box-shadow: 0 0 14px 2px #4cd38a; }
+}

@@ -25,7 +25,9 @@ const FIGUR_TEILE = {
       { name: "Rotes Shirt", farbe: "#e5484d" },
       { name: "Blaues Shirt", farbe: "#3b82f6" },
       { name: "Grünes Shirt", farbe: "#2fb36d" },
-      { name: "Ritterrüstung", farbe: "#b8c2d6" }
+      { name: "Ritterrüstung", farbe: "#b8c2d6" },
+      // Belohnung aus dem Battlepass (Level 50, Premium)
+      { id: "bp-ruestung", name: "Goldene Rüstung", farbe: "#f5c542", seltenheit: "legendär", freischaltung: "battlepass" }
     ]
   },
   hose: {
@@ -82,7 +84,12 @@ function neuesProfil() {
     figur: { figur: 0, kopf: 0, oberteil: 0, hose: 0, schuhe: 0 },
     statistik: { richtigGesamt: 0, serie: 0, besteSerie: 0, spiele: 0 },
     erfolge: {},
-    ausgeruestet: { emote: null, spruch: null }
+    dollar: 0,                       // Spielgeld
+    xp: 0,                           // Erfahrungspunkte für den Battlepass
+    besitz: [],                      // gekaufte oder freigespielte Dinge (ids)
+    deck: { emote: [], spruch: [] }, // je bis zu 4 fürs Online-Spiel
+    haustier: null,                  // id des ausgerüsteten Haustiers
+    battlepass: { premium: false, abgeholt: { gratis: [], premium: [] } }
   };
 }
 
@@ -132,6 +139,18 @@ function zeichneFigur(figur, nurKopf) {
     '</svg>';
 }
 
+// Zeichnet den Charakter und daneben das ausgerüstete Haustier
+function zeigeFigurMitHaustier(container) {
+  container.innerHTML = zeichneFigur(profil.figur);
+  const tier = HAUSTIERE.find(function (h) { return h.id === profil.haustier; });
+  if (tier) {
+    const platz = document.createElement("div");
+    platz.className = "haustier";
+    platz.appendChild(emoteBild(tier));
+    container.appendChild(platz);
+  }
+}
+
 // ===== Charakter-Bildschirm =====
 
 let charakterZurueckZu = "home";
@@ -148,7 +167,7 @@ function oeffneCharakter(zurueckZu) {
 // Zeichnet Figur, Name und die Pfeil-Reihen neu
 function zeigeCharakter() {
   document.getElementById("charakter-name").textContent = profil.name;
-  document.getElementById("charakter-figur").innerHTML = zeichneFigur(profil.figur);
+  zeigeFigurMitHaustier(document.getElementById("charakter-figur"));
 
   const auswahl = document.getElementById("charakter-auswahl");
   auswahl.innerHTML = "";
@@ -162,8 +181,12 @@ function zeigeCharakter() {
       knopf.className = "pfeil zweitrangig";
       knopf.textContent = zeichen;
       knopf.onclick = function () {
-        // Weiterblättern, am Ende wieder von vorne
-        profil.figur[teil] = (profil.figur[teil] + schritt + liste.length) % liste.length;
+        // Weiterblättern, am Ende wieder von vorne – Teile, die man noch nicht hat, überspringen
+        let neu = profil.figur[teil];
+        do {
+          neu = (neu + schritt + liste.length) % liste.length;
+        } while (!besitzt(liste[neu]));
+        profil.figur[teil] = neu;
         zeigeCharakter();
       };
       return knopf;
@@ -186,11 +209,12 @@ function zeigeCharakter() {
 function zeigeHome() {
   document.getElementById("home-name").textContent = profil.name;
   document.getElementById("knopf-profilbild").innerHTML = zeichneFigur(profil.figur, true);
+  zeigeDollar();
   zeigeBildschirm("home");
 }
 
 function zeigeProfil() {
-  document.getElementById("profil-figur").innerHTML = zeichneFigur(profil.figur);
+  zeigeFigurMitHaustier(document.getElementById("profil-figur"));
   document.getElementById("profil-name").textContent = profil.name;
   document.getElementById("profil-info").hidden = true;
   document.getElementById("profil-hinweis").textContent = "";
@@ -204,7 +228,9 @@ function profilInfoText() {
   return "Spiele gespielt: " + s.spiele +
     "\nFragen richtig: " + s.richtigGesamt +
     "\nBeste Serie: " + s.besteSerie + " richtig hintereinander" +
-    "\nErfolge: " + geschafft + " von " + ERFOLGE.length;
+    "\nErfolge: " + geschafft + " von " + ERFOLGE.length +
+    "\nSpielgeld: " + profil.dollar + " $" +
+    "\nBattlepass-Level: " + battlepassLevel();
 }
 
 // Das aktuelle Profil (beim Start aus dem Browser geladen)

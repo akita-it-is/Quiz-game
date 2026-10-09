@@ -384,7 +384,7 @@ function zeigeErgebnis() {
   // Alle Spieler mit Punkten. Allein bist nur du dabei, online kommen später die Freunde dazu.
   zeigeTreppchen([{ name: profil.name, punkte: spielstand.punkte }]);
   profil.statistik.spiele = profil.statistik.spiele + 1;
-  speichereProfil();
+  document.getElementById("ergebnis-belohnung").textContent = spielBelohnung(spielstand.verlauf);
   zeigeRueckblick(spielstand.verlauf);
   zeigeBildschirm("ergebnis");
 }

@@ -45,8 +45,13 @@
         <button id="knopf-profilbild" class="profilbild" title="Profil"></button>
         <div id="home-name" class="name-feld"></div>
       </div>
+      <div class="dollar-anzeige"></div>
       <button id="knopf-quiz" class="gross">Quiz</button>
-      <button id="knopf-shop" class="gross zweitrangig">Shop</button>
+      <!-- Shop 70 % breit, Battlepass 30 % daneben -->
+      <div class="reihe shop-reihe">
+        <button id="knopf-shop" class="gross zweitrangig">🛒 Shop</button>
+        <button id="knopf-battlepass" class="gross bp-knopf">⭐ Pass</button>
+      </div>
       <button id="knopf-inventar" class="gross zweitrangig">Inventar</button>
     </div>
   </section>
@@ -81,7 +86,25 @@
   <section id="shop" class="bildschirm">
     <div class="karte">
       <h2>Shop</h2>
-      <p class="kommt-bald">Kommt bald 🛒</p>
+      <div class="dollar-anzeige"></div>
+      <div id="shop-liste" class="emote-gitter"></div>
+      <button class="zweitrangig zurueck-home">Zurück</button>
+    </div>
+  </section>
+
+  <!-- Battlepass -->
+  <section id="battlepass" class="bildschirm">
+    <div class="karte">
+      <h2>⭐ Battlepass</h2>
+      <div class="dollar-anzeige"></div>
+      <p><strong id="bp-level"></strong></p>
+      <div class="erfolg-balken"><div id="bp-balken"></div></div>
+      <small id="bp-xp"></small>
+      <button id="knopf-bp-kaufen" class="bp-knopf"></button>
+      <p id="bp-hinweis" class="hinweis"></p>
+      <button id="knopf-bp-alle" hidden>🎁 Alle abholen</button>
+      <div class="bp-zeile bp-kopf"><div class="bp-nummer">Lvl</div><div>Gratis</div><div>⭐ Premium</div></div>
+      <div id="bp-liste"></div>
       <button class="zweitrangig zurueck-home">Zurück</button>
     </div>
   </section>
@@ -95,7 +118,10 @@
         <button id="knopf-emotes" class="gross zweitrangig">😄 Emotes</button>
         <button id="knopf-sprueche" class="gross zweitrangig">💬 Sprüche</button>
       </div>
-      <button id="knopf-erfolge" class="gross zweitrangig">🏆 Erfolge</button>
+      <div class="reihe">
+        <button id="knopf-haustiere" class="gross zweitrangig">🐾 Haustiere</button>
+        <button id="knopf-erfolge" class="gross zweitrangig">🏆 Erfolge</button>
+      </div>
       <button class="zweitrangig zurueck-home">Zurück</button>
     </div>
   </section>
@@ -104,7 +130,7 @@
   <section id="sammlung" class="bildschirm">
     <div class="karte">
       <h2 id="sammlung-titel"></h2>
-      <p class="hinweis">Tippe zum Ausrüsten. Im Online-Spiel kannst du sie dann benutzen (kommt bald).</p>
+      <p id="sammlung-hinweis" class="hinweis"></p>
       <div id="sammlung-liste" class="sammlung-liste"></div>
       <button class="zweitrangig zurueck-inventar">Zurück</button>
     </div>
@@ -176,6 +202,7 @@
     <div class="karte">
       <div id="treppchen"></div>
       <h2 id="ergebnis-text"></h2>
+      <p id="ergebnis-belohnung" class="belohnung"></p>
       <h3>Alle Fragen</h3>
       <div id="rueckblick"></div>
       <button id="knopf-nochmal">Nochmal spielen</button>
@@ -201,7 +228,9 @@
   <script src="main.js"></script>
   <script src="profil.js"></script>
   <script src="erfolge.js"></script>
+  <script src="sammlung.js"></script>
   <script src="inventar.js"></script>
+  <script src="wirtschaft.js"></script>
   <script src="einstellungen.js"></script>
   <script src="bildschirme.js"></script>
 </body>

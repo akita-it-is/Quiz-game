@@ -49,9 +49,10 @@ document.getElementById("knopf-quiz").onclick = function () {
   hinweis("menue-hinweis", "");
   zeigeBildschirm("menue");
 };
-document.getElementById("knopf-shop").onclick = function () {
-  zeigeBildschirm("shop");
-};
+document.getElementById("knopf-shop").onclick = zeigeShop;
+document.getElementById("knopf-battlepass").onclick = zeigeBattlepass;
+document.getElementById("knopf-bp-kaufen").onclick = kaufeBattlepass;
+document.getElementById("knopf-bp-alle").onclick = holeAlleBelohnungen;
 document.getElementById("knopf-inventar").onclick = function () {
   zeigeBildschirm("inventar");
 };
@@ -88,6 +89,9 @@ document.getElementById("knopf-emotes").onclick = function () {
 };
 document.getElementById("knopf-sprueche").onclick = function () {
   zeigeSammlung("spruch");
+};
+document.getElementById("knopf-haustiere").onclick = function () {
+  zeigeSammlung("haustier");
 };
 document.getElementById("knopf-erfolge").onclick = zeigeErfolge;
 
@@ -135,6 +139,8 @@ if (profil) {
   profil = Object.assign(vorlage, profil);
   profil.figur = Object.assign(neuesProfil().figur, profil.figur);
   profil.statistik = Object.assign(neuesProfil().statistik, profil.statistik);
+  profil.deck = Object.assign(neuesProfil().deck, profil.deck);
+  delete profil.ausgeruestet; // alte Version (nur 1 Emote/Spruch) – jetzt gibt es das Deck
 }
 
 // Beim Öffnen der Seite mit dem Startbildschirm beginnen
