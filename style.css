@@ -1,2 +1,52 @@
-body { font-family: sans-serif; text-align: center; padding: 20px; }
-button { display: block; width: 100%; margin: 10px 0; padding: 14px; font-size: 18px; }
+body {
+  font-family: sans-serif;
+  text-align: center;
+  margin: 0;
+  padding: 20px 16px;
+  background: #1e1b2e;
+  color: #f2f0fa;
+}
+
+/* Nur der Bildschirm mit der Klasse "aktiv" ist sichtbar */
+.bildschirm { display: none; max-width: 520px; margin: 0 auto; }
+.bildschirm.aktiv { display: block; }
+
+.karte {
+  background: #2c2842;
+  border-radius: 16px;
+  padding: 20px;
+}
+
+button, input[type="text"], input[type="email"], input[type="password"] {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 10px 0;
+  padding: 14px;
+  font-size: 18px;
+  border-radius: 12px;
+  border: none;
+}
+
+button { background: #7c5cff; color: white; cursor: pointer; }
+button.zweitrangig { background: #48426a; }
+button:disabled { opacity: 0.5; }
+
+/* Mehrere Elemente nebeneinander */
+.reihe { display: flex; gap: 10px; }
+.reihe > * { flex: 1; }
+
+.auswahl {
+  display: block;
+  background: #48426a;
+  border-radius: 12px;
+  padding: 12px;
+  margin: 6px 0;
+  text-align: left;
+}
+
+#kategorien { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+input[type="range"] { width: 100%; }
+
+.hinweis { color: #b8b2d6; font-size: 15px; }

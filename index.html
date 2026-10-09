@@ -1,20 +1,85 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mein Quiz</title>
-      <link rel="stylesheet" href="style.css">
-      </head>
-      <body>
-        <h1>Quiz</h1>
-          <p id="punkte">Punkte: 0</p>
-            <div id="spielfeld"></div>
+  <title>Die Tafelrunde – Quiz</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Quiz</h1>
 
-              <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-                <script>const spiele = {};</script>
-                  <script src="spiele/multiple-choice.js"></script>
-                  <script src="spiele/wahr-falsch.js"></script>
-                    <script src="main.js"></script>
-                    </body>
-                    </html>
+  <!-- Bildschirm 1: Start / Anmelden -->
+  <section id="start" class="bildschirm">
+    <div class="karte">
+      <input id="email" type="email" placeholder="E-Mail">
+      <input id="passwort" type="password" placeholder="Passwort">
+      <button id="knopf-anmelden">Anmelden</button>
+      <div class="reihe">
+        <button id="knopf-google" class="zweitrangig">G  Google</button>
+        <button id="knopf-gast">Als Gast</button>
+      </div>
+      <p id="start-hinweis" class="hinweis"></p>
+    </div>
+  </section>
+
+  <!-- Bildschirm 2: Menü -->
+  <section id="menue" class="bildschirm">
+    <div class="karte">
+      <button id="knopf-lobby-erstellen">+ Lobby erstellen</button>
+      <div class="reihe">
+        <input id="lobby-code-eingabe" type="text" placeholder="Lobby-Code" maxlength="5">
+        <button id="knopf-beitreten" class="zweitrangig">Beitreten</button>
+      </div>
+      <button id="knopf-daily" class="zweitrangig">Daily – Tägliche Fragen</button>
+      <p id="menue-hinweis" class="hinweis"></p>
+    </div>
+  </section>
+
+  <!-- Bildschirm 3: Lobby-Einstellungen -->
+  <section id="einstellungen" class="bildschirm">
+    <div class="karte">
+      <h2>Lobby-Einstellungen</h2>
+
+      <h3>Spielmodus</h3>
+      <div class="reihe">
+        <label class="auswahl"><input type="radio" name="modus" value="runden" checked> Runden</label>
+        <label class="auswahl"><input type="radio" name="modus" value="siege"> Rundensiege bis Sieg</label>
+      </div>
+      <p>Anzahl: <strong id="anzahl-anzeige">5</strong></p>
+      <input id="anzahl" type="range" min="3" max="10" value="5">
+
+      <h3>Kategorien</h3>
+      <div id="kategorien">Kategorien werden geladen …</div>
+
+      <p class="hinweis">Lobby-Code: <strong id="lobby-code"></strong> (Online-Spiel kommt bald)</p>
+      <button id="knopf-spiel-starten">Spiel starten</button>
+      <button id="knopf-zurueck" class="zweitrangig">Zurück</button>
+    </div>
+  </section>
+
+  <!-- Bildschirm 4: Spiel -->
+  <section id="spiel" class="bildschirm">
+    <p id="spiel-info"></p>
+    <p id="punkte">Punkte: 0</p>
+    <div id="spielfeld"></div>
+  </section>
+
+  <!-- Bildschirm 5: Ergebnis -->
+  <section id="ergebnis" class="bildschirm">
+    <div class="karte">
+      <h2 id="ergebnis-text"></h2>
+      <button id="knopf-nochmal">Nochmal spielen</button>
+      <button id="knopf-zum-menue" class="zweitrangig">Zum Menü</button>
+    </div>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script>const spiele = {};</script>
+  <script src="spiele/multiple-choice.js"></script>
+  <script src="spiele/wahr-falsch.js"></script>
+  <script src="main.js"></script>
+  <script src="einstellungen.js"></script>
+  <script src="bildschirme.js"></script>
+</body>
+</html>
