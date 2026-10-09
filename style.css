@@ -63,9 +63,16 @@ input[type="range"] { width: 100%; }
 button.richtig { background: #2fb36d; opacity: 1; animation: pulsieren 0.4s ease-out; }
 button.falsch { background: #e5484d; opacity: 1; animation: wackeln 0.4s ease-out; }
 
+/* Frage blendet weich aus, bevor die nächste kommt */
+#spielfeld { transition: opacity 0.3s, transform 0.3s; }
+#spielfeld.ausblenden { opacity: 0; transform: translateY(-12px); }
+
+/* Punkte hüpfen kurz, wenn man einen Punkt bekommt */
+#punkte.hochzaehlen { animation: hochzaehlen 0.5s ease-out; }
+
 /* Timer-Balken über der Frage */
 #timer { display: none; height: 10px; background: #48426a; border-radius: 5px; overflow: hidden; }
-#timer-balken { height: 100%; width: 100%; background: #4cd38a; transition: background 0.3s; }
+#timer-balken { height: 100%; width: 100%; background: #4cd38a; transition: background 0.3s, width 0.1s linear; }
 #timer-balken.knapp { background: #ff5c7a; }
 #timer-zahl { margin: 6px 0; color: #b8b2d6; }
 
@@ -90,4 +97,7 @@ button.falsch { background: #e5484d; opacity: 1; animation: wackeln 0.4s ease-ou
 @keyframes wackeln {
   20%, 60% { transform: translateX(-8px); }
   40%, 80% { transform: translateX(8px); }
+}
+@keyframes hochzaehlen {
+  40% { transform: scale(1.3); color: #4cd38a; }
 }
