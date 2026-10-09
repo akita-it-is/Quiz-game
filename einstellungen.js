@@ -1,17 +1,7 @@
-// Erstellt einen zufälligen Lobby-Code wie "K7QX2" (ohne leicht verwechselbare Zeichen wie 0/O oder 1/I)
-function neuerLobbyCode() {
-  const zeichen = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for (let i = 0; i < 5; i++) {
-    code = code + zeichen[Math.floor(Math.random() * zeichen.length)];
-  }
-  return code;
-}
-
 // Öffnet den Einstellungs-Bildschirm und lädt die Kategorien aus der Tabelle
 async function oeffneEinstellungen() {
   zeigeBildschirm("einstellungen");
-  document.getElementById("lobby-code").textContent = neuerLobbyCode();
+  erstelleLobby();
 
   const box = document.getElementById("kategorien");
   box.textContent = "Kategorien werden geladen …";
@@ -47,6 +37,7 @@ function leseEinstellungen() {
     modus: document.querySelector("input[name='modus']:checked").value,
     anzahl: Number(document.getElementById("anzahl").value),
     sekunden: Number(document.getElementById("zeit").value),
+    maxSpieler: Number(document.getElementById("max-spieler").value),
     kategorien: kategorien
   };
 }
@@ -57,4 +48,9 @@ document.getElementById("anzahl").oninput = function () {
 };
 document.getElementById("zeit").oninput = function () {
   document.getElementById("zeit-anzeige").textContent = this.value;
+};
+document.getElementById("max-spieler").oninput = function () {
+  document.getElementById("max-spieler-anzeige").textContent = this.value;
+  aktuelleLobby.maxSpieler = Number(this.value);
+  zeigeLobbyDetails();
 };

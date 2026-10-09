@@ -10,6 +10,31 @@ body {
 /* Versteckte Elemente wirklich verstecken (auch Knöpfe) */
 [hidden] { display: none !important; }
 
+/* Kopfzeile: links Zurück, Mitte Titel, rechts Knöpfe */
+#kopfzeile { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; max-width: 520px; margin: 0 auto 12px; min-height: 48px; }
+.kopf-links { justify-self: start; }
+.kopf-rechts { justify-self: end; display: flex; gap: 6px; }
+.kopf-mitte { display: flex; align-items: center; gap: 8px; }
+#kopf-titel { margin: 0; font-size: 26px; }
+button.kopf-knopf { width: 44px; height: 44px; padding: 0; margin: 0; font-size: 22px; background: #48426a; border-radius: 50%; }
+button.info-knopf { width: 28px; height: 28px; font-size: 16px; font-weight: bold; font-style: italic; font-family: serif; }
+
+/* Fenster über allem (Infos, Pause, Einstellungen) */
+.fenster-hintergrund { position: fixed; inset: 0; background: rgba(10, 8, 20, 0.75); z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; }
+.fenster { max-width: 420px; width: 100%; box-sizing: border-box; animation: hereingleiten 0.25s ease-out; }
+.fenster p { white-space: pre-line; }
+
+/* Ein/Aus-Schalter (Ton, Musik, Vibration) */
+.schalter-zeile { display: flex; align-items: center; justify-content: space-between; background: #48426a; border-radius: 12px; padding: 12px 14px; margin: 8px 0; text-align: left; }
+input.schalter { appearance: none; -webkit-appearance: none; width: 52px; height: 30px; border-radius: 15px; background: #2c2842; position: relative; cursor: pointer; transition: background 0.2s; }
+input.schalter::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #f2f0fa; transition: transform 0.2s; }
+input.schalter:checked { background: #2fb36d; }
+input.schalter:checked::after { transform: translateX(22px); }
+
+/* Ladeanzeige: drehender Kreis */
+.lade-kreis { width: 48px; height: 48px; border: 5px solid #48426a; border-top-color: #f5c542; border-radius: 50%; animation: drehen 0.8s linear infinite; }
+@keyframes drehen { to { transform: rotate(360deg); } }
+
 /* Nur der Bildschirm mit der Klasse "aktiv" ist sichtbar */
 .bildschirm { display: none; max-width: 520px; margin: 0 auto; }
 .bildschirm.aktiv { display: block; animation: einblenden 0.3s ease-out; }
@@ -65,6 +90,20 @@ input[type="range"] { width: 100%; }
 /* Nach der Antwort: richtig = grün (pulsiert), falsch = rot (wackelt) */
 button.richtig { background: #2fb36d; opacity: 1; animation: pulsieren 0.4s ease-out; }
 button.falsch { background: #e5484d; opacity: 1; animation: wackeln 0.4s ease-out; }
+
+/* Haken bzw. Kreuz rechts an der Antwort */
+#spielfeld button, #spielfeld .sortier-ergebnis, .mathe-anzeige { position: relative; }
+#spielfeld .richtig::after, #spielfeld .falsch::after {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  font-weight: bold; font-size: 20px; animation: einblenden 0.3s;
+}
+#spielfeld .richtig::after { content: "✓"; }
+#spielfeld .falsch::after { content: "✗"; }
+#spielfeld .kaertchen.richtig::after, #spielfeld .kaertchen.falsch::after { right: 6px; top: 12px; font-size: 14px; }
+
+/* Intro vor jeder Runde */
+.intro-karte { background: #2c2842; border: 2px solid #f5c542; border-radius: 16px; padding: 30px 20px; margin-top: 20px; animation: hereingleiten 0.4s ease-out; }
+.intro-karte h2 { font-size: 30px; margin: 0 0 10px; }
 
 /* Frage blendet weich aus, bevor die nächste kommt */
 #spielfeld { transition: opacity 0.3s, transform 0.3s; }
@@ -153,6 +192,19 @@ button.pfeil { width: 40px; flex: 0 0 40px; padding: 8px 0; margin: 0; }
 .sammel-karte.gesperrt { opacity: 0.45; filter: grayscale(0.8); }
 
 button.gefahr { background: #e5484d; }
+
+/* Lobby, Spieler-ID und Freunde */
+.id-zeile { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: #48426a; border-radius: 12px; padding: 6px 6px 6px 12px; margin: 10px 0; }
+.id-zeile button { margin: 0; }
+.lobby-code-box { background: #48426a; border-radius: 14px; padding: 12px; margin-bottom: 10px; }
+.lobby-code-box strong { display: block; font-size: 34px; letter-spacing: 6px; margin: 4px 0; }
+.lobby-code-box button { margin: 6px 0 0; }
+.spieler-zeile { display: flex; align-items: center; gap: 10px; background: #48426a; border-radius: 12px; padding: 6px 10px; margin: 6px 0; text-align: left; }
+.spieler-zeile > span { flex: 1; }
+.spieler-zeile button { margin: 0; }
+.spieler-zeile.frei { opacity: 0.45; border: 2px dashed #8a84a8; background: none; padding: 12px; }
+.spieler-bild { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; background: #2c2842; flex: 0 0 auto; }
+.spieler-bild svg { width: 100%; height: 100%; }
 
 /* Spielgeld, Shop und Battlepass */
 .dollar-anzeige { text-align: right; font-weight: bold; color: #f5c542; margin: 4px 0; }

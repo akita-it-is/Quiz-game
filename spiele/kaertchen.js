@@ -1,5 +1,7 @@
 spiele.kaertchen = {
   name: "Kärtchen",
+  // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
+  beschreibung: "Finde alle richtigen Kärtchen. Jedes richtige gibt 1 Punkt – aber ein falsches und du bist raus bis zur nächsten Frage!",
   fragenProRunde: 3,
   // Feste Zeit pro Frage – gilt immer, egal was in der Lobby eingestellt ist
   festeZeit: 60,
