@@ -28,8 +28,12 @@ spiele.wahrFalsch = {
     [true, false].forEach(function (wert) {
       const knopf = document.createElement("button");
       knopf.textContent = wert ? "Wahr" : "Falsch";
+      // Den richtigen Knopf markieren, damit er nach der Antwort grün wird
+      if (wert === frage.istWahr) {
+        knopf.dataset.richtig = "ja";
+      }
       knopf.onclick = function () {
-        fertig(wert === frage.istWahr ? 1 : 0);
+        auswerten(knopf, fertig);
       };
       spielfeld.appendChild(knopf);
     });

@@ -27,8 +27,12 @@ spiele.multipleChoice = {
     frage.antworten.forEach(function (antwort, nummer) {
       const knopf = document.createElement("button");
       knopf.textContent = antwort;
+      // Den richtigen Knopf markieren, damit er nach der Antwort grün wird
+      if (nummer === frage.richtig) {
+        knopf.dataset.richtig = "ja";
+      }
       knopf.onclick = function () {
-        fertig(nummer === frage.richtig ? 1 : 0);
+        auswerten(knopf, fertig);
       };
       spielfeld.appendChild(knopf);
     });

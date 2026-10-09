@@ -120,7 +120,28 @@ function zeigeFrage() {
   }
 
   spielstand.spiel.zeige(frage, document.getElementById("spielfeld"), fertig);
-  starteTimer(spielstand.einstellungen.sekunden, function () { fertig(0); });
+  // Zeit abgelaufen: richtige Antwort zeigen, 0 Punkte
+  starteTimer(spielstand.einstellungen.sekunden, function () { auswerten(null, fertig); });
+}
+
+// Färbt die Knöpfe nach einer Antwort: richtige Antwort grün, falsch gewählte rot.
+// Nach einer kurzen Pause geht es mit der nächsten Frage weiter.
+// "gewaehlterKnopf" ist null, wenn die Zeit abgelaufen ist.
+function auswerten(gewaehlterKnopf, fertig) {
+  stoppeTimer();
+  const spielfeld = document.getElementById("spielfeld");
+  spielfeld.querySelectorAll("button").forEach(function (k) { k.disabled = true; });
+
+  const richtigerKnopf = spielfeld.querySelector("[data-richtig]");
+  if (richtigerKnopf) {
+    richtigerKnopf.classList.add("richtig");
+  }
+  const istRichtig = gewaehlterKnopf !== null && gewaehlterKnopf === richtigerKnopf;
+  if (gewaehlterKnopf && !istRichtig) {
+    gewaehlterKnopf.classList.add("falsch");
+  }
+
+  setTimeout(function () { fertig(istRichtig ? 1 : 0); }, 1200);
 }
 
 let timerId = null;

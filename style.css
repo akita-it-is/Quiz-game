@@ -59,6 +59,10 @@ input[type="range"] { width: 100%; }
 
 .hinweis { color: #b8b2d6; font-size: 15px; }
 
+/* Nach der Antwort: richtig = grün (pulsiert), falsch = rot (wackelt) */
+button.richtig { background: #2fb36d; opacity: 1; animation: pulsieren 0.4s ease-out; }
+button.falsch { background: #e5484d; opacity: 1; animation: wackeln 0.4s ease-out; }
+
 /* Timer-Balken über der Frage */
 #timer { display: none; height: 10px; background: #48426a; border-radius: 5px; overflow: hidden; }
 #timer-balken { height: 100%; width: 100%; background: #4cd38a; transition: background 0.3s; }
@@ -79,4 +83,11 @@ input[type="range"] { width: 100%; }
 @keyframes hereingleiten {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulsieren {
+  50% { transform: scale(1.05); }
+}
+@keyframes wackeln {
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
 }
