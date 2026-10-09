@@ -1,16 +1,22 @@
-// ===== Inventar: Emotes und Sprüche =====
+// ===== Inventar: Emotes, Sprüche und Haustiere =====
 // Was es alles gibt, steht in sammlung.js.
 
-// Hat der Spieler diesen Eintrag schon?
+// So viele Emotes bzw. Sprüche passen ins Deck fürs Online-Spiel
+const DECK_GROESSE = 4;
+
+// Hat der Spieler diesen Eintrag schon? (gilt auch für Outfit-Teile)
 function besitzt(eintrag) {
   const f = eintrag.freischaltung;
-  if (f === "start") {
+  if (!f || f === "start") {
     return true;
+  }
+  if (profil.besitz.includes(eintrag.id)) {
+    return true; // gekauft oder aus dem Battlepass
   }
   if (f.startsWith("erfolg:")) {
     return Boolean(profil.erfolge[f.slice(7)]);
   }
-  return false; // "shop" usw.: kommt später
+  return false;
 }
 
 // Text, wie man einen gesperrten Eintrag bekommt
@@ -21,7 +27,10 @@ function freischaltungText(eintrag) {
     return "Erfolg: " + (erfolg ? erfolg.text : f.slice(7));
   }
   if (f === "shop") {
-    return "Bald im Shop";
+    return "Im Shop: " + eintrag.preis + " $";
+  }
+  if (f === "battlepass") {
+    return "Battlepass Level " + BATTLEPASS.level;
   }
   return f;
 }
@@ -37,24 +46,54 @@ function emoteBild(emote) {
   return document.createTextNode(emote.bild);
 }
 
-// Zeigt Emotes ("emote") oder Sprüche ("spruch") als Sammlung. Antippen rüstet aus.
+// Ist der Eintrag gerade ausgerüstet? (Emotes/Sprüche: im Deck, Haustier: das eine aktive)
+function istAusgeruestetEintrag(art, id) {
+  return art === "haustier" ? profil.haustier === id : profil.deck[art].includes(id);
+}
+
+// Ausrüsten bzw. ablegen
+function wechsleAusruestung(art, id) {
+  const hinweisFeld = document.getElementById("sammlung-hinweis");
+  if (art === "haustier") {
+    profil.haustier = profil.haustier === id ? null : id;
+  } else {
+    const deck = profil.deck[art];
+    if (deck.includes(id)) {
+      deck.splice(deck.indexOf(id), 1);
+    } else if (deck.length >= DECK_GROESSE) {
+      hinweisFeld.textContent = "Dein Deck ist voll – tippe erst ein ausgerüstetes an, um es abzulegen.";
+      return;
+    } else {
+      deck.push(id);
+    }
+  }
+  speichereProfil();
+  zeigeSammlung(art);
+}
+
+// Zeigt Emotes ("emote"), Sprüche ("spruch") oder Haustiere ("haustier") als Sammlung
 function zeigeSammlung(art) {
-  const eintraege = art === "emote" ? EMOTES : SPRUECHE;
-  document.getElementById("sammlung-titel").textContent = art === "emote" ? "Emotes" : "Sprüche";
+  const eintraege = { emote: EMOTES, spruch: SPRUECHE, haustier: HAUSTIERE }[art];
+  document.getElementById("sammlung-titel").textContent =
+    { emote: "Emotes", spruch: "Sprüche", haustier: "Haustiere" }[art];
+  document.getElementById("sammlung-hinweis").textContent = art === "haustier"
+    ? "Tippe zum Ausrüsten – dein Haustier begleitet dich überall."
+    : "Dein Deck: " + profil.deck[art].length + " / " + DECK_GROESSE +
+      " – diese kannst du im Online-Spiel benutzen (kommt bald).";
 
   const liste = document.getElementById("sammlung-liste");
   liste.innerHTML = "";
-  liste.className = "sammlung-liste " + (art === "emote" ? "emote-gitter" : "spruch-liste");
+  liste.className = "sammlung-liste " + (art === "spruch" ? "spruch-liste" : "emote-gitter");
 
   eintraege.forEach(function (eintrag) {
     const hatEs = besitzt(eintrag);
-    const istAusgeruestet = profil.ausgeruestet[art] === eintrag.id;
+    const istAusgeruestet = istAusgeruestetEintrag(art, eintrag.id);
 
     const knopf = document.createElement("button");
     knopf.className = "sammel-karte seltenheit-" + eintrag.seltenheit +
       (hatEs ? "" : " gesperrt") + (istAusgeruestet ? " ausgeruestet" : "");
 
-    if (art === "emote") {
+    if (art !== "spruch") {
       const bild = document.createElement("div");
       bild.className = "sammel-bild";
       bild.appendChild(emoteBild(eintrag));
@@ -74,9 +113,7 @@ function zeigeSammlung(art) {
         return;
       }
       // Nochmal antippen legt es wieder ab
-      profil.ausgeruestet[art] = istAusgeruestet ? null : eintrag.id;
-      speichereProfil();
-      zeigeSammlung(art);
+      wechsleAusruestung(art, eintrag.id);
     };
     liste.appendChild(knopf);
   });
