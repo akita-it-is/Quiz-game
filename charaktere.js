@@ -12,6 +12,13 @@
 // preis       Preis im Shop (Spiel-Dollar). Den ersten Charakter bekommt man geschenkt.
 
 const CHARAKTERE = [
+  // Diese beiden kann man als Gast spielen (einen davon). Wer sich anmeldet, bekommt beide.
+  { id: "hannes",  name: "Hannes",               tier: "Hund",         kategorie: "allrounder",
+    text: "Hannes ist treu, neugierig und überall ein bisschen zu Hause.",
+    bild: "🐶", farbe: "#c68b59", freischaltung: "anmeldung" },
+  { id: "chiara",  name: "Chiara",               tier: "Katze",        kategorie: "allrounder",
+    text: "Chiara tut immer so, als wüsste sie alles – und meistens stimmt's.",
+    bild: "🐱", farbe: "#e8962e", freischaltung: "anmeldung" },
   { id: "erling",  name: "Erling the GOAT",      tier: "Ziege",        kategorie: "sport",
     text: "Erling ist the GOAT – in allen Sportarten.",
     bild: "🐐", farbe: "#3b82f6", preis: 500 },
@@ -59,14 +66,35 @@ const CHARAKTERE = [
     bild: "🦥", farbe: "#4cd38a", preis: 500 },
   { id: "justin",  name: "Justin Otter",         tier: "Biber",        kategorie: "kunst & architektur",
     text: "Justin ist Bauarbeiter und zeichnet sehr gerne.",
-    bild: "🦫", farbe: "#b8860b", preis: 500 }
+    bild: "🦫", farbe: "#b8860b", preis: 500 },
+  // Für den Maulwurf gibt es kein Emoji – bis es ein eigenes Bild gibt, steht hier der Hamster
+  { id: "manny",   name: "Manny Maulwurf",       tier: "Maulwurf",     kategorie: "mathe",
+    text: "Manny gräbt sich durch jede Rechnung – im Kopf, versteht sich.",
+    bild: "🐹", farbe: "#5c4a3d", preis: 500 }
 ];
 
-// Alle Charaktere gibt es im Shop (der erste ist geschenkt)
+// Diese Charaktere kann man als Gast spielen
+const GAST_CHARAKTERE = ["hannes", "chiara"];
+
+// Alle anderen Charaktere gibt es im Shop – kaufen kann man sie aber erst mit Anmeldung
 CHARAKTERE.forEach(function (c) {
-  c.freischaltung = "shop";
+  c.freischaltung = c.freischaltung || "shop";
   c.seltenheit = "legendär";
 });
+
+// Ist man angemeldet? (Kommt mit Supabase – bis dahin spielen alle als Gast.)
+function istAngemeldet() {
+  return Boolean(profil && profil.angemeldet);
+}
+
+// Darf man diesen Charakter gerade spielen?
+function darfCharakterSpielen(id) {
+  if (!profil.besitz.includes(id) && !(istAngemeldet() && GAST_CHARAKTERE.includes(id))) {
+    return false;
+  }
+  // Als Gast nur Hund oder Katze
+  return istAngemeldet() || GAST_CHARAKTERE.includes(id);
+}
 
 // ===== Skins =====
 // charakter   für welchen Charakter (id) – oder "alle" für einen Skin, der zu jedem passt
@@ -113,7 +141,7 @@ function skinsFuer(charakterId) {
 function kategorieText(kategorie) {
   return kategorie.replace(/(^|[\s/&])(\p{L})/gu, function (_, vor, buchstabe) {
     return vor + buchstabe.toUpperCase();
-  });
+  }).replace(/ Und /g, " und ");
 }
 
 // Baut das Bild eines Charakters mit Skin (als HTML-Text).

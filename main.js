@@ -1,5 +1,13 @@
 const fragenSpeicher = {};
 
+// So viele Punkte gibt eine komplett richtige Frage
+const PUNKTE_PRO_FRAGE = 50;
+
+// "schwer" oder "casual" (leer oder alles andere zählt als casual)
+function leseSchwierigkeit(text) {
+  return String(text || "").trim().toLowerCase().startsWith("schwer") ? "schwer" : "casual";
+}
+
 // Merkt sich alles, was während eines Spiels passiert
 let spielstand = null;
 
@@ -14,6 +22,7 @@ async function ladeFragen(spiel) {
       frage.kategorie = String(frage.kategorie || "sonstiges").trim().toLowerCase();
       frage.id = spiel.name + "-" + nummer;
       frage.info = frage.info || "";
+      frage.schwierigkeit = leseSchwierigkeit(frage.schwierigkeit);
       return frage;
     });
     fragenSpeicher[spiel.name] = fragen;
@@ -46,6 +55,8 @@ async function ladeFragen(spiel) {
     frage.id = frage.id || spiel.name + "-" + nummer;
     // Optionale Spalte "info": kleiner Extra-Fakt, der nach der Antwort erscheint
     frage.info = String(tabelle.data[nummer].info || "").trim();
+    // Neue Spalte "schwierigkeit": casual oder schwer
+    frage.schwierigkeit = leseSchwierigkeit(tabelle.data[nummer].schwierigkeit);
     return frage;
   });
   fragenSpeicher[spiel.name] = fragen;
@@ -101,7 +112,6 @@ async function starteSpiel(einstellungen) {
     einstellungen: einstellungen,
     runde: 0,
     punkte: 0,
-    rundenSiege: 0,
     letzteSpielart: null,
     benutzteFragen: new Set(),
     verlauf: [],      // alle gespielten Fragen für den Endbildschirm
@@ -115,20 +125,22 @@ async function starteSpiel(einstellungen) {
 
 // Wählt eine Spielart und die Fragen für die nächste Runde
 async function naechsteRunde() {
+  // Gewählte Kategorien mit ihrer Schwierigkeit, z. B. { sport: "casual", politik: "schwer" }
   const kategorien = spielstand.einstellungen.kategorien;
 
-  // Für jede Spielart die Fragen aus den gewählten Kategorien heraussuchen
+  // Für jede Spielart die passenden Fragen heraussuchen (Kategorie + Schwierigkeit)
   const moeglich = [];
   for (const spiel of aktiveSpiele()) {
     const fragen = (await ladeFragen(spiel)).filter(function (f) {
-      return kategorien.includes(f.kategorie);
+      return kategorien[f.kategorie] === f.schwierigkeit;
     });
     if (fragen.length > 0) {
       moeglich.push({ spiel: spiel, fragen: fragen });
     }
   }
   if (moeglich.length === 0) {
-    throw new Error("Keine Fragen in den gewählten Kategorien gefunden");
+    throw new Error("Für die gewählten Kategorien (und Casual/Schwer) gibt es noch keine Fragen. " +
+      "Wähl andere Kategorien oder trag in der Tabelle Fragen ein.");
   }
 
   // Nicht zweimal hintereinander dieselbe Spielart (wenn es mehrere gibt)
@@ -305,6 +317,15 @@ function auswerten(gewaehlterKnopf, fertig) {
 // Timer anhalten, Punkte zeigen, Infobox zeigen und dann zur nächsten Frage.
 // "maxPunkte" = so viele Punkte hätte man bei dieser Frage höchstens bekommen können.
 function abschliessen(punkte, maxPunkte, fertig) {
+  // Umrechnen in Spielpunkte: 50 pro komplett richtiger Frage, anteilig bei teilweise richtig.
+  // Spielarten mit "punkteJeTreffer" (Kärtchen) geben 50 pro Treffer.
+  if (spielstand.spiel.punkteJeTreffer) {
+    punkte = punkte * PUNKTE_PRO_FRAGE;
+    maxPunkte = maxPunkte * PUNKTE_PRO_FRAGE;
+  } else {
+    punkte = maxPunkte > 0 ? Math.round(PUNKTE_PRO_FRAGE * punkte / maxPunkte) : 0;
+    maxPunkte = PUNKTE_PRO_FRAGE;
+  }
   pausiereTimer();
   const spielfeld = document.getElementById("spielfeld");
   spielfeld.querySelectorAll("button, input").forEach(function (k) { k.disabled = true; });
@@ -436,9 +457,9 @@ function aktualisiereInfo() {
   const e = spielstand.einstellungen;
   let rundenText = "Runde " + spielstand.runde;
   if (e.modus === "runden") {
-    rundenText = rundenText + " von " + e.anzahl;
+    rundenText = rundenText + " von " + e.runden;
   } else {
-    rundenText = rundenText + " · Rundensiege: " + spielstand.rundenSiege + " von " + e.anzahl;
+    rundenText = rundenText + " · Ziel: " + e.zielPunkte + " Punkte";
   }
   document.getElementById("spiel-info").textContent =
     rundenText + " · Frage " + (spielstand.frageNummer + 1) + "/" + spielstand.rundenFragen.length;
@@ -455,6 +476,13 @@ function frageBeantwortet(erreichtePunkte) {
   spielstand.rundenPunkte = spielstand.rundenPunkte + erreichtePunkte;
   spielstand.frageNummer = spielstand.frageNummer + 1;
 
+  // "Punkte bis Sieg": Sobald das Ziel erreicht ist, ist das Spiel vorbei
+  const e = spielstand.einstellungen;
+  if (e.modus === "punkte" && spielstand.punkte >= e.zielPunkte) {
+    zeigeErgebnis();
+    return;
+  }
+
   if (spielstand.frageNummer < spielstand.rundenFragen.length) {
     zeigeFrage();
   } else {
@@ -467,16 +495,9 @@ function rundeVorbei() {
   const e = spielstand.einstellungen;
   const maxPunkte = spielstand.rundenMaxPunkte;
 
-  // Allein gewinnt man eine Runde mit mehr als der Hälfte der möglichen Punkte.
-  // (Online gewinnt später, wer in der Runde die meisten Punkte hat.)
-  const gewonnen = spielstand.rundenPunkte * 2 > maxPunkte;
-  if (gewonnen) {
-    spielstand.rundenSiege = spielstand.rundenSiege + 1;
-  }
-
-  const spielVorbei = e.modus === "runden"
-    ? spielstand.runde >= e.anzahl
-    : spielstand.rundenSiege >= e.anzahl;
+  // Feste Rundenanzahl: nach der letzten Runde ist Schluss
+  // (bei "Punkte bis Sieg" endet das Spiel schon direkt nach der Frage, die das Ziel erreicht)
+  const spielVorbei = e.modus === "runden" && spielstand.runde >= e.runden;
 
   document.getElementById("punkte").textContent = "Punkte: " + spielstand.punkte;
   const spielfeld = document.getElementById("spielfeld");
@@ -487,10 +508,9 @@ function rundeVorbei() {
     spielstand.rundenPunkte + " von " + maxPunkte + " Punkten";
   spielfeld.appendChild(titel);
 
-  if (e.modus === "siege") {
+  if (e.modus === "punkte") {
     const text = document.createElement("p");
-    text.textContent = (gewonnen ? "Rundensieg! " : "Runde verloren. ") +
-      "Rundensiege: " + spielstand.rundenSiege + " von " + e.anzahl;
+    text.textContent = "Noch " + (e.zielPunkte - spielstand.punkte) + " Punkte bis zum Sieg.";
     spielfeld.appendChild(text);
   }
 
@@ -508,10 +528,10 @@ function rundeVorbei() {
 
 // Zeigt den Endbildschirm
 function zeigeErgebnis() {
+  stoppeTimer();
   let text = "Fertig! Du hast " + spielstand.punkte + " Punkte.";
-  if (spielstand.einstellungen.modus === "siege") {
-    text = "Gewonnen! " + spielstand.rundenSiege + " Rundensiege in " +
-      spielstand.runde + " Runden (" + spielstand.punkte + " Punkte).";
+  if (spielstand.einstellungen.modus === "punkte") {
+    text = "🏆 Ziel erreicht! " + spielstand.punkte + " Punkte in " + spielstand.runde + " Runden.";
   }
   document.getElementById("ergebnis-text").textContent = text;
 

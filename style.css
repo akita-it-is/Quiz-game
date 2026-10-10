@@ -231,6 +231,36 @@ button.bp-feld.abgeholt { opacity: 0.6; }
 .fusszeile { margin-top: 30px; font-size: 14px; color: #b8b2d6; }
 .fusszeile a { color: #b8b2d6; }
 
+/* ===== Lobby: aufklappbare Bereiche, < Zahl >, Kategorie-Cards ===== */
+details.aufklapp { background: #48426a; border-radius: 14px; padding: 4px 12px; margin: 10px 0; text-align: left; }
+details.aufklapp > summary { font-size: 20px; font-weight: bold; padding: 10px 0; cursor: pointer; list-style: none; }
+details.aufklapp > summary::-webkit-details-marker { display: none; }
+details.aufklapp > summary::before { content: "›"; display: inline-block; width: 22px; transition: transform 0.2s; }
+details.aufklapp[open] > summary::before { transform: rotate(90deg); }
+.stepper-zeile { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0; }
+.stepper { display: flex; align-items: center; gap: 6px; }
+button.stepper-knopf { width: 44px; height: 44px; padding: 0; margin: 0; font-size: 22px; background: #2c2842; }
+.stepper-wert { min-width: 64px; text-align: center; font-size: 20px; font-weight: bold; background: #2c2842; border-radius: 10px; padding: 9px 6px; }
+.modus-schalter { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 16px 0 8px; font-weight: bold; }
+.modus-werte { margin-bottom: 10px; }
+.modus-block { display: flex; flex-direction: column; align-items: center; gap: 4px; transition: opacity 0.2s; }
+.modus-block.inaktiv { opacity: 0.35; pointer-events: none; }
+.kategorie-gitter { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+button.kategorie-karte { position: relative; margin: 0; padding: 10px 8px 6px; background: #2c2842; border: 3px solid transparent; display: flex; flex-direction: column; align-items: center; }
+button.kategorie-karte.an { border-color: #7c5cff; }
+button.kategorie-karte:not(.an) { opacity: 0.5; }
+.kat-name { font-weight: bold; font-size: 16px; }
+.kat-bild { font-size: 46px; line-height: 1.2; }
+.kat-haken { position: absolute; top: 6px; right: 6px; width: 24px; height: 24px; border-radius: 6px; border: 2px solid #f2f0fa; font-size: 16px; line-height: 22px; }
+button.kategorie-karte.an .kat-haken { background: #2fb36d; border-color: #2fb36d; }
+.schwierigkeit-schalter { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 6px; font-size: 13px; }
+.schwierigkeit-schalter.inaktiv { opacity: 0.35; }
+.schwierigkeit-schalter input.schalter:checked { background: #e5484d; }
+.einladen-knoepfe { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.einladen-knoepfe button { margin: 0; font-size: 15px; padding: 12px 6px; }
+.einladen-knoepfe button:first-child { grid-row: span 2; }
+.freundes-liste { max-height: 40vh; overflow-y: auto; }
+
 /* ===== Tier-Charaktere ===== */
 /* Das Bild ist 1em groß – die Größe kommt also von der Schriftgröße des Kästchens drumherum */
 .avatar { width: 1em; height: 1em; border-radius: 50%; border: 0.05em solid transparent; box-sizing: border-box;

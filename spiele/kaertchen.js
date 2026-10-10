@@ -1,8 +1,10 @@
 spiele.kaertchen = {
   name: "Kärtchen",
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
-  beschreibung: "Finde alle richtigen Kärtchen. Jedes richtige gibt 1 Punkt – aber ein falsches und du bist raus bis zur nächsten Frage!",
+  beschreibung: "Finde alle richtigen Kärtchen. Jedes richtige gibt 50 Punkte – aber ein falsches und du bist raus bis zur nächsten Frage!",
   fragenProRunde: 3,
+  // 50 Punkte für jedes richtige Kärtchen (statt 50 für die ganze Frage)
+  punkteJeTreffer: true,
   // Feste Zeit pro Frage – gilt immer, egal was in der Lobby eingestellt ist
   festeZeit: 60,
   // CSV-Link des Tabellenblatts "kaertchen" (gleicher Link wie bei Multiple Choice, nur andere gid)

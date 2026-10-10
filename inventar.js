@@ -16,6 +16,9 @@ function besitzt(eintrag) {
   if (f.startsWith("erfolg:")) {
     return Boolean(profil.erfolge[f.slice(7)]);
   }
+  if (f === "anmeldung") {
+    return istAngemeldet(); // Hannes und Chiara bekommt man mit der Anmeldung
+  }
   return false;
 }
 
@@ -28,6 +31,9 @@ function freischaltungText(eintrag) {
   }
   if (f === "shop") {
     return "Im Shop: " + eintrag.preis + " $";
+  }
+  if (f === "anmeldung") {
+    return "Gibt es mit der Anmeldung";
   }
   if (f === "battlepass") {
     return "Battlepass Level " + BATTLEPASS.level;

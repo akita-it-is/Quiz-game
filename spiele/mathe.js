@@ -1,7 +1,7 @@
 spiele.mathe = {
   name: "Mathe",
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
-  beschreibung: "Rechne schnell! Tippe das Ergebnis auf dem Tastenfeld ein und drücke OK. Jede richtige Aufgabe gibt 1 Punkt.",
+  beschreibung: "Rechne schnell! Tippe das Ergebnis auf dem Tastenfeld ein und drücke OK. Jede richtige Aufgabe gibt 50 Punkte.",
   fragenProRunde: 3,
   // Zeit pro Aufgabe: 15 Sekunden, wenn in der Lobby 30 oder weniger eingestellt ist, sonst 20
   festeZeit: function (lobbyZeit) {
@@ -14,26 +14,36 @@ spiele.mathe = {
       return von + Math.floor(Math.random() * (bis - von + 1));
     }
     const aufgaben = [];
-    for (let i = 0; i < 60; i++) {
-      const art = i % 4;
-      let a, b, text, ergebnis;
-      if (art === 0) {
-        a = zufall(12, 99); b = zufall(12, 99);
-        text = a + " + " + b; ergebnis = a + b;
-      } else if (art === 1) {
-        a = zufall(20, 99); b = zufall(5, a - 1);
-        text = a + " − " + b; ergebnis = a - b;
-      } else if (art === 2) {
-        a = zufall(2, 12); b = zufall(2, 12);
-        text = a + " × " + b; ergebnis = a * b;
-      } else {
-        b = zufall(2, 12); ergebnis = zufall(2, 12); a = b * ergebnis;
-        text = a + " ÷ " + b;
+    // Je 60 Aufgaben für "casual" und "schwer" (Plus, Minus, Mal, Geteilt im Wechsel)
+    ["casual", "schwer"].forEach(function (stufe) {
+      const schwer = stufe === "schwer";
+      for (let i = 0; i < 60; i++) {
+        const art = i % 4;
+        let a, b, text, ergebnis;
+        if (art === 0) {
+          a = schwer ? zufall(120, 999) : zufall(12, 99);
+          b = schwer ? zufall(120, 999) : zufall(12, 99);
+          text = a + " + " + b; ergebnis = a + b;
+        } else if (art === 1) {
+          a = schwer ? zufall(200, 999) : zufall(20, 99);
+          b = zufall(schwer ? 50 : 5, a - 1);
+          text = a + " − " + b; ergebnis = a - b;
+        } else if (art === 2) {
+          a = schwer ? zufall(12, 25) : zufall(2, 12);
+          b = schwer ? zufall(3, 12) : zufall(2, 12);
+          text = a + " × " + b; ergebnis = a * b;
+        } else {
+          b = schwer ? zufall(3, 12) : zufall(2, 12);
+          ergebnis = schwer ? zufall(11, 25) : zufall(2, 12);
+          a = b * ergebnis;
+          text = a + " ÷ " + b;
+        }
+        aufgaben.push({ kategorie: "mathe", schwierigkeit: stufe, text: text + " = ?", ergebnis: ergebnis });
       }
-      aufgaben.push({ kategorie: "mathe", text: text + " = ?", ergebnis: ergebnis });
-    }
+    });
     return aufgaben;
   },
+
 
   // Zeigt die Aufgabe, ein Anzeigefeld und ein Zahlen-Tastenfeld
   zeige: function (frage, spielfeld, fertig) {
