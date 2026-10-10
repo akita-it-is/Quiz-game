@@ -4,7 +4,7 @@
 //
 // Wenn neue Dateien dazukommen, hier in die Liste eintragen und VERSION um 1 erhöhen.
 
-const VERSION = 6;
+const VERSION = 7;
 const SPEICHER = "tafelrunde-v" + VERSION;
 
 const DATEIEN = [
@@ -23,9 +23,12 @@ const DATEIEN = [
   "impressum.html",
   "index.html",
   "inventar.js",
+  "konto.js",
+  "lib/supabase.js",
   "lobby.js",
   "main.js",
   "manifest.webmanifest",
+  "mehrspieler.js",
   "oberflaeche.js",
   "pwa.js",
   "profil.js",
@@ -61,6 +64,11 @@ self.addEventListener("activate", function (e) {
   self.clients.claim();
 });
 
+// Gehört die Adresse zu einer Fragen-Tabelle in Supabase?
+function istFragenTabelle(url) {
+  return /\.supabase\.co\/rest\/v1\/(multiple_choice|wahr_falsch|schaetzfrage|reihenfolge|kaertchen|entweder_oder)\?/.test(url);
+}
+
 // Jede Anfrage: erst aus dem Internet holen (und speichern), sonst aus dem Speicher
 self.addEventListener("fetch", function (e) {
   if (e.request.method !== "GET") {
@@ -69,7 +77,8 @@ self.addEventListener("fetch", function (e) {
   e.respondWith(
     fetch(e.request).then(function (antwort) {
       // Eigene Dateien und die Fragen aus Supabase für offline merken
-      if (antwort.ok && (e.request.url.startsWith(self.location.origin) || e.request.url.includes(".supabase.co/rest/"))) {
+      // (nur die Fragen-Tabellen – Profile und Freunde werden nicht gespeichert)
+      if (antwort.ok && (e.request.url.startsWith(self.location.origin) || istFragenTabelle(e.request.url))) {
         const kopie = antwort.clone();
         caches.open(SPEICHER).then(function (speicher) { speicher.put(e.request, kopie); });
       }

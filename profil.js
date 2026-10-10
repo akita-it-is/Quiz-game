@@ -1,6 +1,7 @@
-// ===== Profil: Name, Charakter, Statistik – wird im Browser gespeichert =====
+// ===== Profil: Name, Charakter, Statistik =====
+// Das Profil liegt online in Supabase (siehe konto.js). Auf dem Gerät liegt eine Kopie.
 
-// Liest das gespeicherte Profil (oder null, wenn es noch keins gibt)
+// Liest die Kopie vom Gerät (oder null, wenn es noch keine gibt)
 function ladeProfil() {
   try {
     const text = localStorage.getItem("quiz-profil");
@@ -10,8 +11,14 @@ function ladeProfil() {
   }
 }
 
-// Speichert das Profil im Browser
+// Speichert das Profil: auf dem Gerät und online in Supabase
 function speichereProfil() {
+  merkeProfilAufGeraet();
+  speichereOnline();
+}
+
+// Nur die Kopie auf dem Gerät aktualisieren
+function merkeProfilAufGeraet() {
   try {
     localStorage.setItem("quiz-profil", JSON.stringify(profil));
   } catch (e) {
@@ -19,7 +26,7 @@ function speichereProfil() {
   }
 }
 
-// Löscht das Profil aus dem Browser (Recht auf Löschung)
+// Löscht die Kopie vom Gerät (beim Abmelden und Konto-Löschen)
 function loescheProfil() {
   try {
     localStorage.removeItem("quiz-profil");
@@ -29,7 +36,7 @@ function loescheProfil() {
   profil = null;
 }
 
-// Ein neues Gast-Profil mit zufälligem Namen
+// Leeres Profil (Vorlage für fehlende Felder)
 function neuesProfil() {
   return {
     name: zufallsName(),
@@ -43,18 +50,37 @@ function neuesProfil() {
     deck: { emote: [], spruch: [] }, // je bis zu 4 fürs Online-Spiel
     haustier: null,                  // id des ausgerüsteten Haustiers
     battlepass: { premium: false, abgeholt: { gratis: [], premium: [] } },
-    angemeldet: false,               // wird mit Supabase true (dann gibt es Hannes und Chiara geschenkt)
-    spielerId: neueSpielerId(),      // darüber fügen dich Freunde hinzu
-    freunde: []                      // [{ id, name }]
+    angemeldet: false,               // mit E-Mail angemeldet (dann gibt es Hannes und Chiara geschenkt)
+    spielerId: null                  // z. B. K7Q2-X9MA – darüber fügen dich Freunde hinzu (kommt von Supabase)
   };
 }
 
-// Erfindet einen Namen wie "Flinker Fuchs 42"
+// Bringt ein altes Geräte-Profil (aus der Zeit vor den Konten) auf den neuesten Stand,
+// bevor es einmalig ins Online-Konto übernommen wird
+function bereinigeAltesProfil(alt) {
+  delete alt.figur;          // altes Figur-/Outfit-System
+  delete alt.ausgeruestet;   // alte Version (nur 1 Emote/Spruch) – jetzt gibt es das Deck
+  alt.skins = alt.skins || {};
+  if (alt.haustier && !HAUSTIERE.some(function (h) { return h.id === alt.haustier; })) {
+    alt.haustier = null;     // Haustiere sind jetzt Insekten
+  }
+  // "bp-ruestung" heißt jetzt "koenig" (Skin). Der Spruch "koenig" heißt jetzt "koenig-spruch".
+  alt.besitz = (alt.besitz || []).map(function (id) {
+    return id === "bp-ruestung" ? "koenig" : id;
+  });
+  return alt;
+}
+
+// Erfindet einen Namen wie "Flinker Fuchs 42" (höchstens 16 Zeichen)
 function zufallsName() {
   const eigenschaften = ["Flinker", "Schlauer", "Mutiger", "Lustiger", "Wilder", "Edler", "Tapferer", "Kluger", "Listiger", "Fröhlicher"];
   const wesen = ["Fuchs", "Drache", "Ritter", "Falke", "Bär", "Wolf", "Luchs", "Panda", "Zauberer", "Greif"];
   function eins(liste) { return liste[Math.floor(Math.random() * liste.length)]; }
-  return eins(eigenschaften) + " " + eins(wesen) + " " + (10 + Math.floor(Math.random() * 90));
+  let name;
+  do {
+    name = eins(eigenschaften) + " " + eins(wesen) + " " + (10 + Math.floor(Math.random() * 90));
+  } while (name.length > 16);
+  return name;
 }
 
 // Zeichnet den eigenen Charakter (mit Skin) und daneben das ausgerüstete Haustier
@@ -221,6 +247,11 @@ function zeigeProfil() {
   zeigeFigurMitHaustier(document.getElementById("profil-figur"));
   document.getElementById("profil-name").textContent = profil.name;
   document.getElementById("profil-id").textContent = profil.spielerId;
+  document.getElementById("profil-status").textContent = istAngemeldet()
+    ? "✉️ Angemeldet mit " + ((sitzung && sitzung.user.email) || "E-Mail")
+    : "👤 Du spielst als Gast";
+  document.getElementById("knopf-verbinden").textContent = istAngemeldet()
+    ? "🔑 Passwort festlegen / ändern" : "🔗 Account mit E-Mail verbinden";
   document.getElementById("profil-info").hidden = true;
   document.getElementById("profil-hinweis").textContent = "";
   zeigeBildschirm("profil");
@@ -238,5 +269,5 @@ function profilInfoText() {
     "\nBattlepass-Level: " + battlepassLevel();
 }
 
-// Das aktuelle Profil (beim Start aus dem Browser geladen)
-let profil = ladeProfil();
+// Das aktuelle Profil (wird nach dem Anmelden aus Supabase geladen, siehe konto.js)
+let profil = null;

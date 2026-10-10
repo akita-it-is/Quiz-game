@@ -15,8 +15,8 @@ const KOPF = {
   sammlung:            { titel: "Inventar", zurueck: "inventar" },
   erfolge:             { titel: "Erfolge", zurueck: "inventar" },
   menue:               { titel: "Spielen", zurueck: "home" },
-  einstellungen:       { titel: "Lobby", zurueck: "menue" },
-  warteraum:           { titel: "Lobby", zurueck: "menue" },
+  einstellungen:       { titel: "Lobby", zurueck: "lobby-verlassen" },
+  warteraum:           { titel: "Lobby", zurueck: "lobby-verlassen" },
   spiel:               { titel: "", zurueck: "spiel-verlassen" },
   ergebnis:            { titel: "Ergebnis", zurueck: "home" }
 };
@@ -37,7 +37,8 @@ function zeigeBildschirm(id) {
     ? spielstand.spiel.name : kopf.titel;
   document.getElementById("knopf-zurueck-oben").hidden = !zurueckZiel();
   document.getElementById("knopf-spiel-info").hidden = !imSpiel;
-  document.getElementById("knopf-pause").hidden = !imSpiel;
+  // Online darf nur der Host pausieren
+  document.getElementById("knopf-pause").hidden = !imSpiel || Boolean(spielstand && spielstand.online && !ichBinHost());
   document.getElementById("knopf-ton").hidden = !imSpiel;
   window.scrollTo(0, 0);
 }
@@ -59,6 +60,9 @@ function geheZurueck() {
       brichSpielAb();
       zeigeHome();
     }
+  } else if (ziel === "lobby-verlassen") {
+    trenneLobby();
+    zeigeBildschirm("menue");
   } else if (ziel === "home") {
     zeigeHome();
   } else if (ziel === "profil") {

@@ -3,6 +3,8 @@ spiele.kaertchen = {
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
   beschreibung: "Finde alle richtigen Kärtchen. Jedes richtige gibt 50 Punkte – aber ein falsches und du bist raus bis zur nächsten Frage!",
   fragenProRunde: 3,
+  // Online: Reihum ein Kärtchen wählen, jedes richtige gibt 50 (siehe mehrspieler.js)
+  mehrspieler: "reihum",
   // 50 Punkte für jedes richtige Kärtchen (statt 50 für die ganze Frage)
   punkteJeTreffer: true,
   // Feste Zeit pro Frage – gilt immer, egal was in der Lobby eingestellt ist
@@ -45,6 +47,8 @@ spiele.kaertchen = {
     // Alle richtigen Kärtchen und so viele falsche, dass es 15 sind
     const richtige = frage.richtig;
     const falsche = mische(frage.falsch).slice(0, Math.max(0, 15 - richtige.length));
+    // Online legt der Host die Reihenfolge fest (damit alle dasselbe Gitter sehen)
+    const karten = frage.karten || mische(richtige.concat(falsche));
     const gitter = document.createElement("div");
     gitter.className = "kaertchen-gitter";
     spielfeld.appendChild(gitter);
@@ -69,7 +73,7 @@ spiele.kaertchen = {
       abschliessen(gefunden, richtige.length, fertig);
     }
 
-    mische(richtige.concat(falsche)).forEach(function (name) {
+    karten.forEach(function (name) {
       const karte = document.createElement("button");
       karte.className = "kaertchen";
       karte.textContent = name;

@@ -3,6 +3,8 @@ spiele.wahrFalsch = {
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
   beschreibung: "Stimmt die Aussage oder nicht? Tippe auf „Wahr“ oder „Falsch“. Jede richtige Antwort gibt 50 Punkte.",
   fragenProRunde: 5,
+  // Online: Wer zuerst richtig antwortet, bekommt die meisten Punkte (siehe mehrspieler.js)
+  mehrspieler: "schnellste",
   // Name der Tabelle in Supabase, aus der die Fragen kommen
   tabelle: "wahr_falsch",
 

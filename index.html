@@ -49,7 +49,11 @@
     <div class="karte">
       <input id="email" type="email" placeholder="E-Mail">
       <input id="passwort" type="password" placeholder="Passwort">
-      <button id="knopf-anmelden">Anmelden</button>
+      <div class="reihe">
+        <button id="knopf-anmelden">Anmelden</button>
+        <button id="knopf-registrieren" class="zweitrangig">Registrieren</button>
+      </div>
+      <button id="knopf-passwort-vergessen" class="link-knopf">Passwort vergessen?</button>
       <div class="reihe">
         <button id="knopf-google" class="zweitrangig">G  Google</button>
         <button id="knopf-gast">Als Gast</button>
@@ -101,7 +105,11 @@
   <section id="profil" class="bildschirm">
     <div class="karte">
       <div id="profil-figur" class="figur-gross"></div>
-      <h2 id="profil-name"></h2>
+      <div class="reihe name-reihe">
+        <h2 id="profil-name"></h2>
+        <button id="knopf-name-aendern" class="zweitrangig klein" title="Name ändern">✏️</button>
+      </div>
+      <p id="profil-status" class="hinweis"></p>
       <div class="id-zeile">
         <span>Deine Spieler-ID: <strong id="profil-id"></strong></span>
         <button id="knopf-id-kopieren" class="zweitrangig klein">📋 Kopieren</button>
@@ -111,6 +119,7 @@
       <div id="profil-info" class="aufloesung" hidden></div>
       <button id="knopf-verbinden" class="zweitrangig">Account hier verbinden</button>
       <button id="knopf-einstellungen-profil" class="zweitrangig">Einstellungen</button>
+      <button id="knopf-abmelden" class="zweitrangig">Abmelden</button>
       <p id="profil-hinweis" class="hinweis"></p>
     </div>
   </section>
@@ -119,9 +128,9 @@
   <section id="app-einstellungen" class="bildschirm">
     <div class="karte">
       <div id="ton-einstellungen"></div>
-      <button id="knopf-profil-loeschen" class="gefahr">Profil löschen</button>
-      <p class="hinweis">Löscht deinen Namen, Charakter, deine Statistik und Erfolge von diesem Gerät.
-        Mit Account-System löscht dieser Knopf später auch dein Konto.</p>
+      <button id="knopf-profil-loeschen" class="gefahr">Konto löschen</button>
+      <p class="hinweis">Löscht dein Konto mit allem, was dazugehört: Name, Charakter, Spielgeld,
+        Inventar, Freunde, Statistik und Erfolge. Das geht nicht rückgängig.</p>
     </div>
   </section>
 
@@ -226,8 +235,7 @@
       </div>
       <h3>Spieler</h3>
       <div id="warteraum-spieler"></div>
-      <p class="hinweis">Online-Lobbys kommen mit dem Account-System (Supabase).
-        Dann landest du hier mit deinen Freunden und wartest, bis der Host startet.</p>
+      <p id="warteraum-info" class="hinweis"></p>
     </div>
   </section>
 
@@ -246,6 +254,7 @@
 
       <h3>Spieler <span id="spieler-zahl"></span></h3>
       <div id="spieler-liste"></div>
+      <p id="lobby-hinweis" class="hinweis"></p>
 
       <!-- Aufklappbar: Spieleinstellungen -->
       <details class="aufklapp" open>
@@ -305,6 +314,7 @@
 
   <script src="oberflaeche.js"></script>
   <script src="ton.js"></script>
+  <script src="lib/supabase.js"></script>
   <script src="datenbank.js"></script>
   <script>const spiele = {};</script>
   <script src="spiele/multiple-choice.js"></script>
@@ -322,6 +332,8 @@
   <script src="inventar.js"></script>
   <script src="wirtschaft.js"></script>
   <script src="lobby.js"></script>
+  <script src="konto.js"></script>
+  <script src="mehrspieler.js"></script>
   <script src="einstellungen.js"></script>
   <script src="bildschirme.js"></script>
   <script src="pwa.js"></script>

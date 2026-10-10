@@ -5,7 +5,12 @@
 document.getElementById("knopf-zurueck-oben").onclick = geheZurueck;
 document.getElementById("fenster-schliessen").onclick = schliesseFenster;
 document.getElementById("knopf-pause").onclick = function () {
-  pausiereSpiel("⏸ Pausiert", pauseInhalt("Das Spiel ist angehalten. Im Online-Spiel kann nur der Host pausieren."));
+  if (spielstand && spielstand.online) {
+    // Online: Nur der Host kann pausieren – dann für alle
+    hostPause(true);
+    return;
+  }
+  pausiereSpiel("⏸ Pausiert", pauseInhalt("Das Spiel ist angehalten."));
 };
 document.getElementById("knopf-spiel-info").onclick = function () {
   if (spielstand && spielstand.spiel) {
@@ -18,25 +23,13 @@ document.getElementById("knopf-ton").onclick = function () {
 };
 
 // --- Startbildschirm ---
-document.getElementById("knopf-anmelden").onclick = function () {
-  hinweis("start-hinweis", "Anmelden kommt bald – spiel solange als Gast.");
-};
+document.getElementById("knopf-anmelden").onclick = anmelden;
+document.getElementById("knopf-registrieren").onclick = registrieren;
+document.getElementById("knopf-passwort-vergessen").onclick = passwortVergessen;
 document.getElementById("knopf-google").onclick = function () {
-  hinweis("start-hinweis", "Google-Anmeldung kommt bald – spiel solange als Gast.");
+  hinweis("start-hinweis", "Google-Anmeldung kommt bald – melde dich solange mit E-Mail an oder spiel als Gast.");
 };
-document.getElementById("knopf-gast").onclick = function () {
-  if (profil && profil.charakter && darfCharakterSpielen(profil.charakter)) {
-    // Schon mal als Gast gespielt: direkt zur Startseite (oder in die Lobby, falls eingeladen)
-    nachAnmeldung();
-  } else if (profil) {
-    // Altes Profil (ohne Charakter oder mit einem, den Gäste nicht spielen dürfen): neu aussuchen
-    oeffneCharakter("home");
-  } else {
-    // Zum ersten Mal: Charakter wählen, zufälliger Name
-    profil = neuesProfil();
-    oeffneCharakter("home");
-  }
-};
+document.getElementById("knopf-gast").onclick = alsGastSpielen;
 
 // --- Charakter ---
 document.getElementById("knopf-neuer-name").onclick = function () {
@@ -66,8 +59,15 @@ document.getElementById("knopf-profil-info").onclick = function () {
   info.hidden = !info.hidden;
 };
 document.getElementById("knopf-verbinden").onclick = function () {
-  hinweis("profil-hinweis", "Account verbinden kommt bald – dann bleibt dein Fortschritt auf allen Geräten.");
+  // Gast: E-Mail verbinden. Mit E-Mail: Passwort festlegen oder ändern.
+  if (istAngemeldet()) {
+    zeigeNeuesPasswort();
+  } else {
+    zeigeAccountVerbinden();
+  }
 };
+document.getElementById("knopf-name-aendern").onclick = zeigeNameAendern;
+document.getElementById("knopf-abmelden").onclick = abmelden;
 document.getElementById("knopf-id-kopieren").onclick = function () {
   kopiere(profil.spielerId, this);
 };
@@ -82,13 +82,7 @@ document.getElementById("knopf-einstellungen-profil").onclick = function () {
 };
 
 // --- Einstellungen ---
-document.getElementById("knopf-profil-loeschen").onclick = function () {
-  // Sicherheitsfrage, damit man nicht aus Versehen alles löscht
-  if (confirm("Willst du dein Profil wirklich löschen? Name, Charakter, Statistik und Erfolge sind dann weg.")) {
-    loescheProfil();
-    zeigeBildschirm("start");
-  }
-};
+document.getElementById("knopf-profil-loeschen").onclick = kontoLoeschen;
 
 // --- Inventar ---
 document.getElementById("knopf-outfits").onclick = function () {
@@ -150,40 +144,28 @@ document.getElementById("knopf-spiel-starten").onclick = function () {
     alert("Bitte mindestens eine Kategorie auswählen.");
     return;
   }
-  starteSpiel(einstellungen).catch(zeigeFehler);
+  // Mit anderen in der Lobby: online spielen, allein: wie bisher
+  if (lobbySpieler.length > 1) {
+    starteOnline(einstellungen);
+  } else {
+    starteSpiel(einstellungen).catch(zeigeFehler);
+  }
 };
 
 // --- Ergebnis ---
 document.getElementById("knopf-nochmal").onclick = function () {
+  if (spielstand && spielstand.online) {
+    zurueckZurLobby();
+    return;
+  }
   starteSpiel(spielstand.einstellungen).catch(zeigeFehler);
 };
-document.getElementById("knopf-zum-menue").onclick = zeigeHome;
+document.getElementById("knopf-zum-menue").onclick = function () {
+  // Nach einem Online-Spiel: Lobby verlassen
+  trenneLobby();
+  zeigeHome();
+};
 
-// Älteren Profilen fehlende Felder ergänzen (falls später neue dazukommen)
-if (profil) {
-  const vorlage = neuesProfil();
-  profil = Object.assign(vorlage, profil);
-  delete profil.figur; // altes Figur-/Outfit-System – jetzt gibt es Tier-Charaktere mit Skins
-  profil.skins = profil.skins || {};
-  // Haustiere sind jetzt Insekten – ein altes Haustier (Hund, Katze …) gibt es nicht mehr
-  if (profil.haustier && !HAUSTIERE.some(function (h) { return h.id === profil.haustier; })) {
-    profil.haustier = null;
-  }
-  // Battlepass-Belohnung war früher die "Goldene Rüstung" – jetzt ist es der Königs-Skin
-  profil.besitz = profil.besitz.map(function (id) { return id === "bp-ruestung" ? "koenig" : id; });
-  profil.statistik = Object.assign(neuesProfil().statistik, profil.statistik);
-  profil.deck = Object.assign(neuesProfil().deck, profil.deck);
-  // vorlage enthält schon eine neue spielerId, falls das alte Profil noch keine hatte – gleich speichern
-  speichereProfil();
-  delete profil.ausgeruestet; // alte Version (nur 1 Emote/Spruch) – jetzt gibt es das Deck
-}
-
-// Beim Öffnen der Seite mit dem Startbildschirm beginnen
+// Beim Öffnen der Seite: Ist man schon angemeldet? Dann direkt weiter, sonst Startbildschirm.
 zeigeBildschirm("start");
-if (freundesEinladung) {
-  hinweis("start-hinweis", "Jemand möchte mit dir befreundet sein! Melde dich an oder spiel als Gast.");
-}
-if (einladungsCode) {
-  hinweis("start-hinweis", "Du wurdest in die Lobby " + einladungsCode +
-    " eingeladen! Melde dich an oder spiel als Gast – dann geht's direkt los.");
-}
+kontoStart();

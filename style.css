@@ -396,3 +396,66 @@ button.charakter-karte.gesperrt { opacity: 0.45; filter: grayscale(0.8); }
 @keyframes leuchten {
   50% { box-shadow: 0 0 14px 2px #4cd38a; }
 }
+
+/* Unauffälliger Text-Knopf (z. B. "Passwort vergessen?") */
+button.link-knopf {
+  background: none;
+  border: none;
+  box-shadow: none;
+  color: inherit;
+  opacity: 0.75;
+  text-decoration: underline;
+  font-size: 0.9em;
+  padding: 4px;
+  min-height: 0;
+}
+
+/* Freundesliste: grüner Punkt = online */
+.online-punkt {
+  display: inline-block;
+  width: 0.6em;
+  height: 0.6em;
+  border-radius: 50%;
+  background: #6b6880;
+  margin-right: 0.4em;
+  vertical-align: middle;
+}
+.online-punkt.online {
+  background: #34d17a;
+  box-shadow: 0 0 6px #34d17a;
+}
+.freund-name {
+  flex: 1;
+}
+#freunde-liste h3 {
+  margin: 14px 0 6px;
+  font-size: 1em;
+}
+
+/* Online: Punkte aller Spieler nach einer Frage */
+.runden-rangliste {
+  margin: 12px 0;
+  display: grid;
+  gap: 4px;
+}
+.rang-zeile {
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  text-align: left;
+}
+.rang-zeile.ich {
+  background: rgba(124, 92, 255, 0.25);
+  font-weight: bold;
+}
+
+/* Online-Kärtchen: wer ist dran, wer hat welches Kärtchen gewählt */
+.reihum-stand.ich-dran {
+  color: #ffd84d;
+  font-weight: bold;
+}
+.kaertchen-wer {
+  display: block;
+  font-size: 0.7em;
+  opacity: 0.85;
+}

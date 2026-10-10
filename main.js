@@ -114,8 +114,23 @@ async function starteSpiel(einstellungen) {
 
 // Wählt eine Spielart und die Fragen für die nächste Runde
 async function naechsteRunde() {
+  const gewaehlt = await waehleRunde(spielstand.einstellungen, spielstand.letzteSpielart, spielstand.benutzteFragen);
+  spielstand.runde = spielstand.runde + 1;
+  spielstand.letzteSpielart = gewaehlt.spiel;
+  spielstand.spiel = gewaehlt.spiel;
+  spielstand.rundenFragen = gewaehlt.fragen;
+  spielstand.frageNummer = 0;
+  spielstand.rundenPunkte = 0;
+  spielstand.rundenMaxPunkte = 0;
+
+  zeigeIntro();
+}
+
+// Sucht eine Spielart (nicht dieselbe wie zuletzt) und ihre Fragen für eine Runde aus.
+// Wird auch vom Host im Online-Spiel benutzt (mehrspieler.js).
+async function waehleRunde(einstellungen, letzteSpielart, benutzteFragen) {
   // Gewählte Kategorien mit ihrer Schwierigkeit, z. B. { sport: "casual", politik: "schwer" }
-  const kategorien = spielstand.einstellungen.kategorien;
+  const kategorien = einstellungen.kategorien;
 
   // Für jede Spielart die passenden Fragen heraussuchen (Kategorie + Schwierigkeit)
   const moeglich = [];
@@ -133,27 +148,17 @@ async function naechsteRunde() {
   }
 
   // Nicht zweimal hintereinander dieselbe Spielart (wenn es mehrere gibt)
-  let auswahl = moeglich.filter(function (m) { return m.spiel !== spielstand.letzteSpielart; });
+  let auswahl = moeglich.filter(function (m) { return m.spiel !== letzteSpielart; });
   if (auswahl.length === 0) {
     auswahl = moeglich;
   }
   const gewaehlt = auswahl[Math.floor(Math.random() * auswahl.length)];
 
   // Zuerst Fragen nehmen, die in diesem Spiel noch nicht dran waren
-  const neue = gewaehlt.fragen.filter(function (f) { return !spielstand.benutzteFragen.has(f.id); });
-  const alte = gewaehlt.fragen.filter(function (f) { return spielstand.benutzteFragen.has(f.id); });
+  const neue = gewaehlt.fragen.filter(function (f) { return !benutzteFragen.has(f.id); });
+  const alte = gewaehlt.fragen.filter(function (f) { return benutzteFragen.has(f.id); });
   const anzahl = gewaehlt.spiel.fragenProRunde || 5;
-  const rundenFragen = mische(neue).concat(mische(alte)).slice(0, anzahl);
-
-  spielstand.runde = spielstand.runde + 1;
-  spielstand.letzteSpielart = gewaehlt.spiel;
-  spielstand.spiel = gewaehlt.spiel;
-  spielstand.rundenFragen = rundenFragen;
-  spielstand.frageNummer = 0;
-  spielstand.rundenPunkte = 0;
-  spielstand.rundenMaxPunkte = 0;
-
-  zeigeIntro();
+  return { spiel: gewaehlt.spiel, fragen: mische(neue).concat(mische(alte)).slice(0, anzahl) };
 }
 
 // 2 Sekunden lang: Name der Spielart und kurze Erklärung, dann geht's los
@@ -176,7 +181,10 @@ function zeigeIntro() {
   karte.appendChild(text);
   spielfeld.appendChild(karte);
 
-  setTimeout(function () { nachPause(zeigeFrage); }, 2000);
+  // Online schickt der Host die erste Frage (siehe mehrspieler.js)
+  if (!spielstand.online) {
+    setTimeout(function () { nachPause(zeigeFrage); }, 2000);
+  }
 }
 
 // ===== Pause =====
@@ -242,6 +250,9 @@ function brichSpielAb() {
   stoppeTimer();
   if (spielstand) {
     spielstand.abgebrochen = true;
+    if (spielstand.online) {
+      trenneLobby();
+    }
   }
   document.getElementById("fenster").hidden = true;
 }
@@ -270,9 +281,19 @@ function zeigeFrage() {
     frageBeantwortet(erreichtePunkte);
   }
 
+  spielstand.frageStart = Date.now();
+  const spielfeld = document.getElementById("spielfeld");
+  spielfeld.classList.remove("ausblenden");
+  // Online wird bei "Kärtchen" reihum gewählt – das steuert mehrspieler.js
+  if (spielstand.online && spielstand.spiel.mehrspieler === "reihum") {
+    zeigeReihum(frage, spielfeld);
+    starteTimer(zeitFuer(spielstand.spiel), function () {});
+    return;
+  }
+
   // Eine Spielart kann eine eigene Funktion für "Zeit abgelaufen" zurückgeben
   // (z. B. Schätzfrage: das bisher Eingetippte trotzdem werten)
-  const beiZeitAblauf = spielstand.spiel.zeige(frage, document.getElementById("spielfeld"), fertig);
+  const beiZeitAblauf = spielstand.spiel.zeige(frage, spielfeld, fertig);
   // Manche Spielarten haben eine eigene Zeit (z. B. Kärtchen: immer 60 Sekunden)
   starteTimer(zeitFuer(spielstand.spiel), function () {
     if (typeof beiZeitAblauf === "function") {
@@ -305,7 +326,13 @@ function auswerten(gewaehlterKnopf, fertig) {
 // Wird nach jeder Antwort aufgerufen (von allen Spielarten):
 // Timer anhalten, Punkte zeigen, Infobox zeigen und dann zur nächsten Frage.
 // "maxPunkte" = so viele Punkte hätte man bei dieser Frage höchstens bekommen können.
-function abschliessen(punkte, maxPunkte, fertig) {
+// "details": Zusatzinfos fürs Online-Spiel (z. B. die Schätzung)
+function abschliessen(punkte, maxPunkte, fertig, details) {
+  if (spielstand.online) {
+    // Online: Antwort an den Host schicken, die Punkte kommen dann vom Host
+    sendeAntwort(punkte, maxPunkte, details);
+    return;
+  }
   // Umrechnen in Spielpunkte: 50 pro komplett richtiger Frage, anteilig bei teilweise richtig.
   // Spielarten mit "punkteJeTreffer" (Kärtchen) geben 50 pro Treffer.
   if (spielstand.spiel.punkteJeTreffer) {
@@ -524,12 +551,21 @@ function zeigeErgebnis() {
   }
   document.getElementById("ergebnis-text").textContent = text;
 
-  // Alle Spieler mit Punkten. Allein bist nur du dabei, online kommen später die Freunde dazu.
+  // Allein bist nur du auf dem Treppchen (online: zeigeOnlineErgebnis in mehrspieler.js)
   zeigeTreppchen([{ name: profil.name, punkte: spielstand.punkte }]);
+  document.getElementById("knopf-nochmal").textContent = "Nochmal spielen";
   profil.statistik.spiele = profil.statistik.spiele + 1;
-  document.getElementById("ergebnis-belohnung").textContent = spielBelohnung(spielstand.verlauf);
+  speichereProfil();
+  zeigeBelohnung(spielstand.verlauf, spielstand.runde);
   zeigeRueckblick(spielstand.verlauf);
   zeigeBildschirm("ergebnis");
+}
+
+// Holt die Belohnung von Supabase und zeigt sie an
+function zeigeBelohnung(verlauf, runden) {
+  const feld = document.getElementById("ergebnis-belohnung");
+  feld.textContent = "Belohnung wird gutgeschrieben …";
+  spielBelohnung(verlauf, runden).then(function (text) { feld.textContent = text; });
 }
 
 // Siegertreppchen: Platz 2 links, Platz 1 in der Mitte (am höchsten), Platz 3 rechts

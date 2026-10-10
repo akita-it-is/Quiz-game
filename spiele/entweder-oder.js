@@ -3,6 +3,8 @@ spiele.entwederOder = {
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
   beschreibung: "Zu welcher der beiden Möglichkeiten passt die Aussage? Ein Fehler und du bist raus. Schaffst du alle 5, gibt es 50 Punkte.",
   fragenProRunde: 3,
+  // Online: Wer alle schafft (oder am längsten durchhält), bekommt 50 (siehe mehrspieler.js)
+  mehrspieler: "ueberleben",
   // Name der Tabelle in Supabase, aus der die Fragen kommen
   tabelle: "entweder_oder",
 
@@ -100,7 +102,7 @@ spiele.entwederOder = {
         if (nummer === frage.aussagen.length) {
           vorbei = true;
           melde("Alle richtig! 🎉");
-          abschliessen(1, 1, fertig);
+          abschliessen(1, 1, fertig, { richtig: nummer });
         } else {
           // Kurz grün zeigen, dann die nächste Aussage
           setTimeout(zeigeAussage, 700);
@@ -112,7 +114,7 @@ spiele.entwederOder = {
         }
         melde((gewaehlterKnopf ? "Falsch" : "Zeit um") + " – du bist raus! " +
           nummer + " von " + frage.aussagen.length + " geschafft.");
-        abschliessen(0, 1, fertig);
+        abschliessen(0, 1, fertig, { richtig: nummer });
       }
     }
 

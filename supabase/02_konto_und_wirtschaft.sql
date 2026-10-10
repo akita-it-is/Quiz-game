@@ -1,5 +1,6 @@
 -- ===== Schritt 1 + 2: Spielerprofil (Anmeldung) und sichere Wirtschaft =====
--- Wird von Claude über die Supabase-Verbindung eingespielt. Hier zum Nachlesen.
+-- Ist schon in Supabase eingespielt (von Claude über die Supabase-Verbindung). Hier zum Nachlesen.
+-- Die Funktion zum Konto-Löschen steht in 04_konto_loeschen.sql.
 --
 -- Grundidee:
 --  * Jeder Spieler (auch Gäste) hat ein Konto in Supabase Auth und genau eine Zeile in "profil".
@@ -37,10 +38,8 @@ create table if not exists public.profil (
 alter table public.profil enable row level security;
 
 -- Jeder sieht und ändert nur sein eigenes Profil
-drop policy if exists "Eigenes Profil lesen" on public.profil;
 create policy "Eigenes Profil lesen" on public.profil
   for select to authenticated using (id = (select auth.uid()));
-drop policy if exists "Eigenes Profil ändern" on public.profil;
 create policy "Eigenes Profil ändern" on public.profil
   for update to authenticated using (id = (select auth.uid())) with check (id = (select auth.uid()));
 
@@ -61,17 +60,17 @@ create or replace function public.neue_spieler_id()
 returns text language plpgsql set search_path = '' as $$
 declare
   zeichen constant text := 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  id text;
+  neue_id text;
 begin
   loop
-    id := '';
+    neue_id := '';
     for i in 1..8 loop
-      id := id || substr(zeichen, 1 + floor(random() * 32)::int, 1);
-      if i = 4 then id := id || '-'; end if;
+      neue_id := neue_id || substr(zeichen, 1 + floor(random() * 32)::int, 1);
+      if i = 4 then neue_id := neue_id || '-'; end if;
     end loop;
-    exit when not exists (select 1 from public.profil p where p.spieler_id = id);
+    exit when not exists (select 1 from public.profil p where p.spieler_id = neue_id);
   end loop;
-  return id;
+  return neue_id;
 end $$;
 revoke all on function public.neue_spieler_id() from public, anon, authenticated;
 
@@ -82,9 +81,11 @@ begin
   insert into public.profil (id, spieler_id) values (new.id, public.neue_spieler_id());
   return new;
 end $$;
-drop trigger if exists neues_konto on auth.users;
-create trigger neues_konto after insert on auth.users
+create or replace trigger neues_konto after insert on auth.users
   for each row execute function public.neues_konto();
+
+-- Trigger-Funktionen darf niemand direkt aufrufen
+revoke all on function public.neues_konto() from public, anon, authenticated;
 
 -- Prüft Änderungen am Profil: Name, Charakter und Skins nur, wenn erlaubt
 create or replace function public.pruefe_profil()
@@ -119,9 +120,9 @@ begin
   end if;
   return new;
 end $$;
-drop trigger if exists pruefe_profil on public.profil;
-create trigger pruefe_profil before update on public.profil
+create or replace trigger pruefe_profil before update on public.profil
   for each row execute function public.pruefe_profil();
+revoke all on function public.pruefe_profil() from public, anon, authenticated;
 
 -- Übernimmt einmalig ein altes Profil, das nur auf dem Gerät gespeichert war.
 -- Gilt nur bis zum öffentlichen Start (danach gibt es keine alten Geräte-Profile mehr).
@@ -165,14 +166,6 @@ begin
   return ergebnis;
 end $$;
 
--- Konto komplett löschen (Recht auf Löschung, DSGVO). Löscht auch Profil und Freundschaften.
-create or replace function public.loesche_mein_konto()
-returns void language plpgsql security definer set search_path = '' as $$
-begin
-  if (select auth.uid()) is null then raise exception 'Nicht angemeldet'; end if;
-  delete from auth.users where id = (select auth.uid());
-end $$;
-
 -- ---------- Shop ----------
 -- Alles, was man kaufen kann, mit Preis. Muss zu den Preisen in charaktere.js / sammlung.js passen!
 create table if not exists public.shop_artikel (
@@ -182,7 +175,6 @@ create table if not exists public.shop_artikel (
   braucht         text                              -- Skins: nur, wenn man den Charakter hat
 );
 alter table public.shop_artikel enable row level security;
-drop policy if exists "Shop lesen" on public.shop_artikel;
 create policy "Shop lesen" on public.shop_artikel for select to anon, authenticated using (true);
 grant select on public.shop_artikel to anon, authenticated;
 
@@ -306,10 +298,10 @@ begin
 end $$;
 
 -- Nur angemeldete Spieler (auch Gäste) dürfen diese Funktionen aufrufen
-revoke all on function public.importiere_profil(jsonb), public.loesche_mein_konto(),
+revoke all on function public.importiere_profil(jsonb),
   public.kaufe(text), public.kaufe_battlepass(), public.hole_battlepass(int, text),
   public.spiel_belohnung(int, int, int) from public, anon;
-grant execute on function public.importiere_profil(jsonb), public.loesche_mein_konto(),
+grant execute on function public.importiere_profil(jsonb),
   public.kaufe(text), public.kaufe_battlepass(), public.hole_battlepass(int, text),
   public.spiel_belohnung(int, int, int) to authenticated;
 
