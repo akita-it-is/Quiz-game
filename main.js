@@ -136,7 +136,9 @@ async function waehleRunde(einstellungen, letzteSpielart, benutzteFragen) {
   const moeglich = [];
   for (const spiel of aktiveSpiele()) {
     const fragen = (await ladeFragen(spiel)).filter(function (f) {
-      return kategorien[f.kategorie] === f.schwierigkeit;
+      // Casual: nur Casual-Fragen. Schwer: schwere UND Casual-Fragen (siehe zieheFragen)
+      return kategorien[f.kategorie] === "schwer" ||
+        (kategorien[f.kategorie] === "casual" && f.schwierigkeit === "casual");
     });
     if (fragen.length > 0) {
       moeglich.push({ spiel: spiel, fragen: fragen });
@@ -154,11 +156,40 @@ async function waehleRunde(einstellungen, letzteSpielart, benutzteFragen) {
   }
   const gewaehlt = auswahl[Math.floor(Math.random() * auswahl.length)];
 
-  // Zuerst Fragen nehmen, die in diesem Spiel noch nicht dran waren
-  const neue = gewaehlt.fragen.filter(function (f) { return !benutzteFragen.has(f.id); });
-  const alte = gewaehlt.fragen.filter(function (f) { return benutzteFragen.has(f.id); });
   const anzahl = gewaehlt.spiel.fragenProRunde || 5;
-  return { spiel: gewaehlt.spiel, fragen: mische(neue).concat(mische(alte)).slice(0, anzahl) };
+  return { spiel: gewaehlt.spiel, fragen: zieheFragen(gewaehlt.fragen, anzahl, kategorien, benutzteFragen) };
+}
+
+// Steht eine Kategorie auf "Schwer", kommen schwere und Casual-Fragen im Verhältnis 2 zu 1
+const SCHWER_ANTEIL = 2 / 3;
+
+// Zieht die Fragen einer Runde – Frage für Frage:
+//  1. Fragen, die in diesem Spiel noch nicht dran waren, haben Vorrang
+//  2. Erst wird eine Kategorie ausgelost (alle gleich oft)
+//  3. Steht sie auf "Schwer": mit 2/3 eine schwere, mit 1/3 eine Casual-Frage
+//     (gibt es nur eine Sorte, kommt diese)
+function zieheFragen(alleFragen, anzahl, kategorien, benutzteFragen) {
+  let uebrig = alleFragen.slice();
+  const gezogen = [];
+  function eins(liste) { return liste[Math.floor(Math.random() * liste.length)]; }
+  while (gezogen.length < anzahl && uebrig.length > 0) {
+    const neue = uebrig.filter(function (f) { return !benutzteFragen.has(f.id); });
+    const auswahl = neue.length > 0 ? neue : uebrig;
+    const kategorie = eins(Array.from(new Set(auswahl.map(function (f) { return f.kategorie; }))));
+    const inKategorie = auswahl.filter(function (f) { return f.kategorie === kategorie; });
+    let kandidaten = inKategorie;
+    if (kategorien[kategorie] === "schwer") {
+      const schwere = inKategorie.filter(function (f) { return f.schwierigkeit === "schwer"; });
+      const leichte = inKategorie.filter(function (f) { return f.schwierigkeit !== "schwer"; });
+      if (schwere.length > 0 && leichte.length > 0) {
+        kandidaten = Math.random() < SCHWER_ANTEIL ? schwere : leichte;
+      }
+    }
+    const frage = eins(kandidaten);
+    gezogen.push(frage);
+    uebrig = uebrig.filter(function (f) { return f !== frage; });
+  }
+  return gezogen;
 }
 
 // 2 Sekunden lang: Name der Spielart und kurze Erklärung, dann geht's los
