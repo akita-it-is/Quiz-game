@@ -21,7 +21,7 @@ function neueSpielerId() {
 
 // ===== Einladungslink =====
 
-// Link, der direkt in die Lobby führt, z. B. https://dietafelrunde.netlify.app/?lobby=K7QX2
+// Link, der direkt in die Lobby führt, z. B. https://dietafelrunde.pages.dev/?lobby=K7QX2
 function lobbyLink(code) {
   return location.origin + location.pathname + "?lobby=" + code;
 }
@@ -31,7 +31,7 @@ function teileLobby(code, knopf) {
 }
 
 // Freundes-Link: Wer ihn öffnet, ist danach mit dir befreundet,
-// z. B. https://dietafelrunde.netlify.app/?freund=K7Q2-X9MA
+// z. B. https://dietafelrunde.pages.dev/?freund=K7Q2-X9MA
 function freundesLink() {
   return location.origin + location.pathname + "?freund=" + profil.spielerId;
 }

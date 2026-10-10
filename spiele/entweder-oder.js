@@ -5,6 +5,8 @@ spiele.entwederOder = {
   fragenProRunde: 3,
   // Dieses Blatt braucht keine Spalte "text" (die Überschrift entsteht aus option1 und option2)
   ohneTextSpalte: true,
+  // Name der Tabelle in Supabase (ist sie leer, kommen die Fragen aus "fragenQuelle")
+  tabelle: "entweder_oder",
   // CSV-Link des Tabellenblatts "entweder-oder" (gleicher Link wie bei Multiple Choice, nur andere gid)
   // Steht hier "", wird diese Spielart einfach übersprungen.
   fragenQuelle: "",

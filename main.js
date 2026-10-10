@@ -11,7 +11,7 @@ function leseSchwierigkeit(text) {
 // Merkt sich alles, was während eines Spiels passiert
 let spielstand = null;
 
-// Lädt die Fragen einer Spielart aus der Tabelle (nur beim ersten Mal)
+// Lädt die Fragen einer Spielart (nur beim ersten Mal)
 async function ladeFragen(spiel) {
   if (fragenSpeicher[spiel.name]) {
     return fragenSpeicher[spiel.name];
@@ -28,14 +28,47 @@ async function ladeFragen(spiel) {
     fragenSpeicher[spiel.name] = fragen;
     return fragen;
   }
+  // Zuerst aus Supabase laden – ist die Tabelle dort (noch) leer, aus Google Sheets
+  let zeilen = [];
   ladenStart();
-  let text;
   try {
-    const antwort = await fetch(spiel.fragenQuelle);
-    text = await antwort.text();
+    if (spiel.tabelle) {
+      try {
+        zeilen = await ladeTabelle(spiel.tabelle);
+      } catch (fehler) {
+        // Ohne Google-Sheets-Link gibt es keinen Ersatz – dann den Fehler zeigen
+        if (!spiel.fragenQuelle) {
+          throw fehler;
+        }
+        console.warn(fehler);
+      }
+    }
+    if (zeilen.length === 0 && spiel.fragenQuelle) {
+      zeilen = await ladeCsv(spiel);
+    }
   } finally {
     ladenEnde();
   }
+  const fragen = zeilen.map(spiel.zeileZuFrage).map(function (frage, nummer) {
+    // Kategorie einheitlich schreiben ("Sport " wird zu "sport")
+    frage.kategorie = String(frage.kategorie || "sonstiges").trim().toLowerCase();
+    // Jede Frage braucht eine eindeutige id, damit sie im Spiel nicht doppelt kommt
+    // (mit Spielart davor, weil z. B. Multiple Choice und Wahr/Falsch beide eine Frage 1 haben)
+    frage.id = spiel.name + "-" + (frage.id || nummer);
+    // Optionale Spalte "info": kleiner Extra-Fakt, der nach der Antwort erscheint
+    frage.info = String(zeilen[nummer].info || "").trim();
+    // Spalte "schwierigkeit": casual oder schwer
+    frage.schwierigkeit = leseSchwierigkeit(zeilen[nummer].schwierigkeit);
+    return frage;
+  });
+  fragenSpeicher[spiel.name] = fragen;
+  return fragen;
+}
+
+// Lädt die Fragen aus Google Sheets (alter Weg, bis alles in Supabase ist)
+async function ladeCsv(spiel) {
+  const antwort = await fetch(spiel.fragenQuelle);
+  const text = await antwort.text();
   const tabelle = Papa.parse(text, {
     header: true,
     skipEmptyLines: true,
@@ -48,25 +81,13 @@ async function ladeFragen(spiel) {
     throw new Error("In der Tabelle für " + spiel.name + " fehlt die Spalte \"text\". " +
       "Gefundene Spalten: " + (tabelle.meta.fields || []).join(", "));
   }
-  const fragen = tabelle.data.map(spiel.zeileZuFrage).map(function (frage, nummer) {
-    // Kategorie einheitlich schreiben ("Sport " wird zu "sport")
-    frage.kategorie = String(frage.kategorie || "sonstiges").trim().toLowerCase();
-    // Jede Frage braucht eine eindeutige id, damit sie im Spiel nicht doppelt kommt
-    frage.id = frage.id || spiel.name + "-" + nummer;
-    // Optionale Spalte "info": kleiner Extra-Fakt, der nach der Antwort erscheint
-    frage.info = String(tabelle.data[nummer].info || "").trim();
-    // Neue Spalte "schwierigkeit": casual oder schwer
-    frage.schwierigkeit = leseSchwierigkeit(tabelle.data[nummer].schwierigkeit);
-    return frage;
-  });
-  fragenSpeicher[spiel.name] = fragen;
-  return fragen;
+  return tabelle.data;
 }
 
-// Alle Spielarten, bei denen schon ein Tabellen-Link eingetragen ist
-// (oder die ihre Fragen selbst erzeugen)
+// Alle Spielarten, die Fragen haben können (Supabase-Tabelle, Google-Sheets-Link
+// oder selbst erzeugte Fragen). Spielarten ohne passende Fragen werden im Spiel übersprungen.
 function aktiveSpiele() {
-  return Object.values(spiele).filter(function (s) { return s.fragenQuelle || s.erzeugeFragen; });
+  return Object.values(spiele).filter(function (s) { return s.tabelle || s.fragenQuelle || s.erzeugeFragen; });
 }
 
 // Wie viele Sekunden eine Frage dieser Spielart hat.

@@ -7,6 +7,8 @@ spiele.kaertchen = {
   punkteJeTreffer: true,
   // Feste Zeit pro Frage – gilt immer, egal was in der Lobby eingestellt ist
   festeZeit: 60,
+  // Name der Tabelle in Supabase (ist sie leer, kommen die Fragen aus "fragenQuelle")
+  tabelle: "kaertchen",
   // CSV-Link des Tabellenblatts "kaertchen" (gleicher Link wie bei Multiple Choice, nur andere gid)
   // Steht hier "", wird diese Spielart einfach übersprungen.
   fragenQuelle: "",

@@ -3,6 +3,8 @@ spiele.reihenfolge = {
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
   beschreibung: "Tippe die Antworten der Reihe nach an – Platz 1 zuerst. Für jeden richtigen Platz und jede richtige Nachbar-Antwort gibt es anteilig Punkte – alles richtig: 50.",
   fragenProRunde: 3,
+  // Name der Tabelle in Supabase (ist sie leer, kommen die Fragen aus "fragenQuelle")
+  tabelle: "reihenfolge",
   // CSV-Link des Tabellenblatts "reihenfolge" (gleicher Link wie bei Multiple Choice, nur andere gid)
   // Steht hier "", wird diese Spielart einfach übersprungen.
   fragenQuelle: "",

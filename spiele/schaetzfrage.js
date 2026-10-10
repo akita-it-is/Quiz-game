@@ -3,6 +3,8 @@ spiele.schaetzfrage = {
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
   beschreibung: "Tippe eine Zahl ein, die möglichst nah an der richtigen Antwort liegt. Genau richtig: 50 Punkte, bis 10 % daneben: 33, bis 25 % daneben: 17.",
   fragenProRunde: 3,
+  // Name der Tabelle in Supabase (ist sie leer, kommen die Fragen aus "fragenQuelle")
+  tabelle: "schaetzfrage",
   // CSV-Link des Tabellenblatts "schaetzfrage" (gleicher Link wie bei Multiple Choice, nur andere gid)
   // Steht hier "", wird diese Spielart einfach übersprungen.
   fragenQuelle: "",
