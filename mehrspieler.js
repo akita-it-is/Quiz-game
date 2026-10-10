@@ -327,7 +327,7 @@ function beiStart(einstellungen, gesamt) {
     einstellungen: einstellungen,
     runde: 0,
     punkte: gesamt[profil.spielerId] || 0,
-    letzteSpielart: null,
+    artenVerlauf: [],
     benutzteFragen: new Set(),
     verlauf: [],
     pausiert: false,
@@ -340,7 +340,7 @@ function beiStart(einstellungen, gesamt) {
     fid: null,
     geantwortetFid: null
   };
-  onlineStand = { laeuft: true, einstellungen: einstellungen, runde: 0, gesamt: gesamt, benutzt: [],
+  onlineStand = { laeuft: true, einstellungen: einstellungen, runde: 0, gesamt: gesamt, benutzt: [], arten: [],
     spielKey: null, fid: 0, nr: 0, frage: null, ergebnisFid: null, antworten: {}, reihumPunkte: {} };
   zeigeBildschirm("spiel");
   setzeTitel("Online-Spiel");
@@ -357,14 +357,17 @@ function laeuftOnline() {
 
 // Neue Runde: Intro mit Name und Erklärung der Spielart
 function beiRunde(p) {
-  if (!laeuftOnline()) {
+  if (!onlineStand) {
     return;
   }
   onlineStand.runde = p.runde;
   onlineStand.spielKey = p.spielKey;
+  onlineStand.arten.push(spiele[p.spielKey].name);
+  if (!laeuftOnline()) {
+    return;
+  }
   spielstand.runde = p.runde;
   spielstand.spiel = spiele[p.spielKey];
-  spielstand.letzteSpielart = spielstand.spiel;
   spielstand.rundenFragen = new Array(p.anzahl).fill(null);
   spielstand.frageNummer = 0;
   zeigeIntro();
@@ -727,7 +730,7 @@ function neueLeitung(stand) {
   return {
     e: stand.einstellungen,
     runde: stand.runde || 0,
-    letzteSpielart: stand.spielKey ? spiele[stand.spielKey] : null,
+    arten: (stand.arten || []).slice(),   // Spielarten, die schon dran waren
     spielKey: stand.spielKey,
     benutzt: new Set(stand.benutzt || []),
     gesamt: Object.assign({}, stand.gesamt),
@@ -750,7 +753,7 @@ async function leitungRunde() {
   }
   let gewaehlt;
   try {
-    gewaehlt = await waehleRunde(L.e, L.letzteSpielart, L.benutzt);
+    gewaehlt = await waehleRunde(L.e, L.arten, L.benutzt);
   } catch (fehler) {
     sende("ende", { gesamt: L.gesamt, runden: L.runde, fehler: fehler.message });
     return;
@@ -759,7 +762,7 @@ async function leitungRunde() {
     return;
   }
   L.runde = L.runde + 1;
-  L.letzteSpielart = gewaehlt.spiel;
+  L.arten.push(gewaehlt.spiel.name);
   L.spielKey = schluesselVon(gewaehlt.spiel);
   L.fragen = gewaehlt.fragen.map(function (f) {
     L.benutzt.add(f.id);

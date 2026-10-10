@@ -101,7 +101,7 @@ async function starteSpiel(einstellungen) {
     einstellungen: einstellungen,
     runde: 0,
     punkte: 0,
-    letzteSpielart: null,
+    artenVerlauf: [],  // welche Spielarten schon dran waren (Namen, in Reihenfolge)
     benutzteFragen: new Set(),
     verlauf: [],      // alle gespielten Fragen für den Endbildschirm
     pausiert: false,
@@ -114,9 +114,9 @@ async function starteSpiel(einstellungen) {
 
 // Wählt eine Spielart und die Fragen für die nächste Runde
 async function naechsteRunde() {
-  const gewaehlt = await waehleRunde(spielstand.einstellungen, spielstand.letzteSpielart, spielstand.benutzteFragen);
+  const gewaehlt = await waehleRunde(spielstand.einstellungen, spielstand.artenVerlauf, spielstand.benutzteFragen);
   spielstand.runde = spielstand.runde + 1;
-  spielstand.letzteSpielart = gewaehlt.spiel;
+  spielstand.artenVerlauf.push(gewaehlt.spiel.name);
   spielstand.spiel = gewaehlt.spiel;
   spielstand.rundenFragen = gewaehlt.fragen;
   spielstand.frageNummer = 0;
@@ -126,9 +126,10 @@ async function naechsteRunde() {
   zeigeIntro();
 }
 
-// Sucht eine Spielart (nicht dieselbe wie zuletzt) und ihre Fragen für eine Runde aus.
+// Sucht eine Spielart und ihre Fragen für eine Runde aus.
+// "artenVerlauf": Namen der Spielarten, die in diesem Spiel schon dran waren.
 // Wird auch vom Host im Online-Spiel benutzt (mehrspieler.js).
-async function waehleRunde(einstellungen, letzteSpielart, benutzteFragen) {
+async function waehleRunde(einstellungen, artenVerlauf, benutzteFragen) {
   // Gewählte Kategorien mit ihrer Schwierigkeit, z. B. { sport: "casual", politik: "schwer" }
   const kategorien = einstellungen.kategorien;
 
@@ -149,10 +150,20 @@ async function waehleRunde(einstellungen, letzteSpielart, benutzteFragen) {
       "Wähl andere Kategorien oder trag in Supabase Fragen ein.");
   }
 
-  // Nicht zweimal hintereinander dieselbe Spielart (wenn es mehrere gibt)
-  let auswahl = moeglich.filter(function (m) { return m.spiel !== letzteSpielart; });
-  if (auswahl.length === 0) {
-    auswahl = moeglich;
+  // Jede Spielart kommt einmal dran, bevor sich eine wiederholt:
+  // Es kommen nur die Spielarten in Frage, die bisher am seltensten dran waren.
+  function wieOft(m) {
+    return artenVerlauf.filter(function (name) { return name === m.spiel.name; }).length;
+  }
+  const seltenste = Math.min.apply(null, moeglich.map(wieOft));
+  let auswahl = moeglich.filter(function (m) { return wieOft(m) === seltenste; });
+  // Nie zweimal hintereinander dieselbe (wenn es eine andere gibt)
+  const letzte = artenVerlauf[artenVerlauf.length - 1];
+  const nichtLetzte = function (m) { return m.spiel.name !== letzte; };
+  if (auswahl.some(nichtLetzte)) {
+    auswahl = auswahl.filter(nichtLetzte);
+  } else if (moeglich.some(nichtLetzte)) {
+    auswahl = moeglich.filter(nichtLetzte);
   }
   const gewaehlt = auswahl[Math.floor(Math.random() * auswahl.length)];
 
