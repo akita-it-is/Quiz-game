@@ -3,6 +3,8 @@ spiele.reihenfolge = {
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
   beschreibung: "Tippe die Antworten der Reihe nach an – Platz 1 zuerst. Für jeden richtigen Platz und jede richtige Nachbar-Antwort gibt es anteilig Punkte – alles richtig: 50.",
   fragenProRunde: 3,
+  // Online: Punkte wie allein (anteilig) (siehe mehrspieler.js)
+  mehrspieler: "anteilig",
   // Name der Tabelle in Supabase, aus der die Fragen kommen
   tabelle: "reihenfolge",
 

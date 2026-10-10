@@ -1,7 +1,6 @@
-// ===== Lobby: Code, Einladungslink, Spieler-ID, Freunde =====
-// Hinweis: Echte Online-Lobbys (andere Geräte sehen, Rauswerfen wirkt bei allen)
-// kommen mit Supabase. Hier ist alles schon so vorbereitet, dass dann nur noch
-// die Verbindung dazukommt.
+// ===== Lobby: Code, Einladungslink, Freunde =====
+// Die Echtzeit-Verbindung der Lobby (wer ist drin, Spiel starten …) steht in mehrspieler.js.
+// Die Freunde liegen in Supabase (Tabelle "freundschaft", siehe supabase/03_freunde_und_lobby.sql).
 
 // Zeichen für Codes und IDs – ohne leicht verwechselbare wie 0/O oder 1/I
 const CODE_ZEICHEN = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -12,11 +11,6 @@ function zufallsCode(laenge) {
     code = code + CODE_ZEICHEN[Math.floor(Math.random() * CODE_ZEICHEN.length)];
   }
   return code;
-}
-
-// Spieler-ID wie "K7Q2-X9MA" – darüber fügen dich Freunde hinzu
-function neueSpielerId() {
-  return zufallsCode(4) + "-" + zufallsCode(4);
 }
 
 // ===== Einladungslink =====
@@ -62,11 +56,9 @@ let freundesEinladung = null;
 // Nach Anmeldung bzw. "Als Gast": Gibt es eine Einladung? Dann direkt in die Lobby.
 function nachAnmeldung() {
   if (freundesEinladung) {
-    const ergebnis = fuegeFreundIdHinzu(freundesEinladung);
+    const code = freundesEinladung;
     freundesEinladung = null;
-    zeigeFenster("👥 Freundes-Link", ergebnis.ok
-      ? "Ihr seid jetzt befreundet! Du findest " + ergebnis.id + " in deiner Freundesliste."
-      : ergebnis.text);
+    freundAnfragen(code, true).then(function (text) { zeigeFenster("👥 Freundes-Link", text); });
   }
   if (einladungsCode) {
     const code = einladungsCode;
@@ -79,6 +71,7 @@ function nachAnmeldung() {
 
 // ===== Lobby beitreten (Warteraum) =====
 
+// { code, host, maxSpieler } – wer drin ist, steht in lobbySpieler (mehrspieler.js)
 let aktuelleLobby = null;
 
 function betreteLobby(code) {
@@ -88,10 +81,16 @@ function betreteLobby(code) {
     zeigeBildschirm("menue");
     return;
   }
-  aktuelleLobby = { code: code, host: false, maxSpieler: 6, spieler: [ichAlsSpieler()] };
+  aktuelleLobby = { code: code, host: false, maxSpieler: 6 };
   document.getElementById("warteraum-code").textContent = code;
-  zeigeSpielerliste(document.getElementById("warteraum-spieler"), aktuelleLobby);
+  document.getElementById("warteraum-info").textContent = "Verbinde mit der Lobby …";
+  verbindeLobby(code);
+  zeigeWarteraum();
   zeigeBildschirm("warteraum");
+}
+
+function zeigeWarteraum() {
+  zeigeSpielerliste(document.getElementById("warteraum-spieler"));
 }
 
 // ===== Lobby erstellen (Host) =====
@@ -99,51 +98,43 @@ function betreteLobby(code) {
 // Wird beim Öffnen der Lobby-Einstellungen aufgerufen
 function erstelleLobby() {
   const code = zufallsCode(5);
-  aktuelleLobby = {
-    code: code,
-    host: true,
-    maxSpieler: lobbyWahl.maxSpieler,
-    spieler: [ichAlsSpieler(true)]
-  };
+  aktuelleLobby = { code: code, host: true, maxSpieler: lobbyWahl.maxSpieler };
   document.getElementById("lobby-code").textContent = code;
+  verbindeLobby(code);
   zeigeLobbyDetails();
 }
 
 function zeigeLobbyDetails() {
-  zeigeSpielerliste(document.getElementById("spieler-liste"), aktuelleLobby);
+  zeigeSpielerliste(document.getElementById("spieler-liste"));
   document.getElementById("spieler-zahl").textContent =
-    "(" + aktuelleLobby.spieler.length + " / " + aktuelleLobby.maxSpieler + ")";
-}
-
-function ichAlsSpieler(istHost) {
-  return { id: profil.spielerId, name: profil.name, charakter: profil.charakter,
-    skin: profil.skins[profil.charakter] || null, host: Boolean(istHost) };
+    "(" + lobbySpieler.length + " / " + aktuelleLobby.maxSpieler + ")";
 }
 
 // Spielerliste mit Profilbild. Der Host sieht bei den anderen einen Rauswerfen-Knopf.
-function zeigeSpielerliste(box, lobby) {
+function zeigeSpielerliste(box) {
   box.innerHTML = "";
-  lobby.spieler.forEach(function (s) {
+  const ichHost = ichBinHost();
+  lobbySpieler.forEach(function (s, i) {
     const zeile = document.createElement("div");
     zeile.className = "spieler-zeile";
     const bild = document.createElement("div");
     bild.className = "spieler-bild";
     bild.innerHTML = charakterBild(s.charakter, s.skin);
     const name = document.createElement("span");
-    name.textContent = (s.host ? "👑 " : "") + s.name + (s.id === profil.spielerId ? " (du)" : "");
+    name.textContent = (i === 0 ? "👑 " : "") + s.name + (s.id === profil.spielerId ? " (du)" : "");
     zeile.appendChild(bild);
     zeile.appendChild(name);
-    if (lobby.host && s.id !== profil.spielerId) {
+    if (ichHost && s.id !== profil.spielerId) {
       const raus = document.createElement("button");
       raus.className = "gefahr klein";
       raus.textContent = "Rauswerfen";
-      raus.onclick = function () { werfeRaus(s.id); };
+      raus.onclick = function () { werfeRaus(s); };
       zeile.appendChild(raus);
     }
     box.appendChild(zeile);
   });
   // Freie Plätze anzeigen
-  for (let i = lobby.spieler.length; i < lobby.maxSpieler; i++) {
+  for (let i = lobbySpieler.length; i < aktuelleLobby.maxSpieler; i++) {
     const frei = document.createElement("div");
     frei.className = "spieler-zeile frei";
     frei.textContent = "Freier Platz …";
@@ -151,46 +142,83 @@ function zeigeSpielerliste(box, lobby) {
   }
 }
 
-function werfeRaus(id) {
-  const s = aktuelleLobby.spieler.find(function (x) { return x.id === id; });
-  if (s && confirm(s.name + " aus der Lobby werfen?")) {
-    aktuelleLobby.spieler = aktuelleLobby.spieler.filter(function (x) { return x.id !== id; });
-    zeigeLobbyDetails();
+function werfeRaus(spieler) {
+  if (confirm(spieler.name + " aus der Lobby werfen?")) {
+    wirfSpielerRaus(spieler.id);
   }
 }
 
-// Fenster "Freund einladen": Freundesliste, Freundes-Link, Code eingeben, eigener Code
-function zeigeFreundEinladen() {
-  const box = document.createElement("div");
+// ===== Freunde =====
 
+// Schickt eine Freundschaftsanfrage (oder wird sofort Freund, bei "sofort" = Freundes-Link).
+// Gibt einen Text zurück, der erklärt, was passiert ist.
+async function freundAnfragen(roheId, sofort) {
+  const id = String(roheId || "").trim();
+  if (id.replace(/[^A-Za-z0-9]/g, "").length !== 8) {
+    return "Eine Spieler-ID sieht so aus: K7Q2-X9MA";
+  }
+  const antwort = await db.rpc("freund_anfrage", { code: id, sofort: Boolean(sofort) });
+  if (antwort.error) {
+    return fehlerText(antwort.error);
+  }
+  return {
+    gesendet: "✓ Anfrage gesendet! Sobald sie angenommen wird, seid ihr Freunde.",
+    schon_gesendet: "Du hast schon eine Anfrage geschickt – warte, bis sie angenommen wird.",
+    freunde: "🎉 Ihr seid jetzt befreundet!",
+    schon_freunde: "Ihr seid schon befreundet.",
+    selbst: "Das ist deine eigene ID 😄",
+    nicht_gefunden: "Diese Spieler-ID gibt es nicht. Hast du dich vertippt?"
+  }[antwort.data] || antwort.data;
+}
+
+// Lädt die Freundesliste aus Supabase: [{ uid, spieler_id, name, charakter, skin, status, online }]
+async function ladeFreunde() {
+  const antwort = await db.rpc("meine_freunde");
+  if (antwort.error) {
+    throw new Error(fehlerText(antwort.error));
+  }
+  return antwort.data || [];
+}
+
+// Eine Zeile mit Bild, Name und Online-Punkt
+function freundZeile(f) {
+  const zeile = document.createElement("div");
+  zeile.className = "spieler-zeile";
+  const bild = document.createElement("div");
+  bild.className = "spieler-bild";
+  bild.innerHTML = charakterBild(f.charakter, f.skin);
+  const name = document.createElement("span");
+  name.className = "freund-name";
+  name.textContent = f.name;
+  if (f.status === "freund") {
+    const punkt = document.createElement("span");
+    punkt.className = "online-punkt" + (f.online ? " online" : "");
+    punkt.title = f.online ? "online" : "offline";
+    name.prepend(punkt);
+  }
+  zeile.appendChild(bild);
+  zeile.appendChild(name);
+  return zeile;
+}
+
+function kleinerKnopf(text, klasse, aktion) {
+  const knopf = document.createElement("button");
+  knopf.className = "klein " + (klasse || "");
+  knopf.textContent = text;
+  knopf.onclick = aktion;
+  return knopf;
+}
+
+// Fenster "Freund einladen" in der Lobby: Freunde (online zuerst), Freundes-Link, Code eingeben, eigener Code
+async function zeigeFreundEinladen() {
+  const box = document.createElement("div");
   const liste = document.createElement("div");
   liste.className = "freundes-liste";
-  if (profil.freunde.length === 0) {
-    liste.innerHTML = '<p class="hinweis">Noch keine Freunde – teile deinen Freundes-Link oder gib einen Code ein.</p>';
-  }
-  profil.freunde.forEach(function (f) {
-    const zeile = document.createElement("div");
-    zeile.className = "spieler-zeile";
-    const bild = document.createElement("div");
-    bild.className = "spieler-bild";
-    bild.textContent = "👤";
-    const name = document.createElement("span");
-    name.textContent = f.name || f.id;
-    const knopf = document.createElement("button");
-    knopf.className = "klein";
-    knopf.textContent = "Einladen";
-    knopf.onclick = function () { teileLobby(aktuelleLobby.code, knopf); };
-    zeile.appendChild(bild);
-    zeile.appendChild(name);
-    zeile.appendChild(knopf);
-    liste.appendChild(zeile);
-  });
+  liste.innerHTML = '<p class="hinweis">Lädt …</p>';
   box.appendChild(liste);
 
   const meldung = document.createElement("p");
   meldung.className = "hinweis";
-
-  // Bereich, der je nach Knopf "Code eingeben" bzw. "Eigener Freundecode" zeigt
   const extra = document.createElement("div");
 
   const knoepfe = document.createElement("div");
@@ -205,13 +233,8 @@ function zeigeFreundEinladen() {
     extra.innerHTML = '<div class="reihe"><input type="text" placeholder="z. B. K7Q2-X9MA" maxlength="9">' +
       '<button class="klein">Hinzufügen</button></div>';
     const feld = extra.querySelector("input");
-    extra.querySelector("button").onclick = function () {
-      const ergebnis = fuegeFreundIdHinzu(feld.value);
-      if (ergebnis.ok) {
-        zeigeFreundEinladen();
-      } else {
-        meldung.textContent = ergebnis.text;
-      }
+    extra.querySelector("button").onclick = async function () {
+      meldung.textContent = await freundAnfragen(feld.value);
     };
     feld.focus();
   };
@@ -231,71 +254,109 @@ function zeigeFreundEinladen() {
   box.appendChild(knoepfe);
   box.appendChild(extra);
   box.appendChild(meldung);
+  zeigeFenster("Freund einladen", box);
 
-  zeigeFenster("Freundesliste", box);
+  try {
+    const freunde = (await ladeFreunde()).filter(function (f) { return f.status === "freund"; });
+    liste.innerHTML = "";
+    if (freunde.length === 0) {
+      liste.innerHTML = '<p class="hinweis">Noch keine Freunde – teile deinen Freundes-Link oder gib einen Code ein.</p>';
+    }
+    freunde.forEach(function (f) {
+      const zeile = freundZeile(f);
+      // Online: Einladung erscheint sofort bei ihm. Offline: Link teilen.
+      const knopf = kleinerKnopf(f.online ? "Einladen" : "Link senden", f.online ? "" : "zweitrangig", function () {
+        if (f.online) {
+          ladeFreundEin(f, knopf);
+        } else {
+          teileLobby(aktuelleLobby.code, knopf);
+        }
+      });
+      zeile.appendChild(knopf);
+      liste.appendChild(zeile);
+    });
+  } catch (fehler) {
+    liste.innerHTML = "";
+    meldung.textContent = fehler.message;
+  }
 }
 
-// ===== Freunde =====
-
+// Freunde-Bildschirm: Anfragen, Freunde (online zuerst) und gesendete Anfragen
 let freundeZurueckZu = "profil";
 
-function zeigeFreunde(zurueckZu) {
-  freundeZurueckZu = zurueckZu;
+async function zeigeFreunde(zurueckZu) {
+  if (zurueckZu) {
+    freundeZurueckZu = zurueckZu;
+  }
   document.querySelectorAll(".eigene-id").forEach(function (f) { f.textContent = profil.spielerId; });
-  document.getElementById("freunde-hinweis").textContent = "";
   const liste = document.getElementById("freunde-liste");
+  if (aktuellerBildschirm !== "freunde") {
+    document.getElementById("freunde-hinweis").textContent = "";
+    liste.innerHTML = '<p class="hinweis">Lädt …</p>';
+    zeigeBildschirm("freunde");
+  }
+  let freunde;
+  try {
+    freunde = await ladeFreunde();
+  } catch (fehler) {
+    liste.innerHTML = "";
+    hinweis("freunde-hinweis", fehler.message);
+    return;
+  }
   liste.innerHTML = "";
-  if (profil.freunde.length === 0) {
-    liste.innerHTML = '<p class="hinweis">Du hast noch keine Freunde hinzugefügt.</p>';
-  }
-  profil.freunde.forEach(function (f) {
-    const zeile = document.createElement("div");
-    zeile.className = "spieler-zeile";
-    const name = document.createElement("span");
-    // Den Namen kennen wir erst mit Supabase – bis dahin steht die ID da
-    name.textContent = (f.name || "Spieler") + " · " + f.id;
-    const weg = document.createElement("button");
-    weg.className = "zweitrangig klein";
-    weg.textContent = "Entfernen";
-    weg.onclick = function () {
-      profil.freunde = profil.freunde.filter(function (x) { return x.id !== f.id; });
-      speichereProfil();
-      zeigeFreunde(freundeZurueckZu);
-    };
-    zeile.appendChild(name);
-    zeile.appendChild(weg);
-    liste.appendChild(zeile);
+  const gruppen = [
+    { status: "eingehend", titel: "📬 Anfragen an dich" },
+    { status: "freund", titel: "👥 Deine Freunde" },
+    { status: "ausgehend", titel: "⏳ Gesendete Anfragen" }
+  ];
+  gruppen.forEach(function (gruppe) {
+    const passende = freunde.filter(function (f) { return f.status === gruppe.status; })
+      .sort(function (a, b) { return (b.online ? 1 : 0) - (a.online ? 1 : 0); });
+    if (passende.length === 0) {
+      return;
+    }
+    const titel = document.createElement("h3");
+    titel.textContent = gruppe.titel;
+    liste.appendChild(titel);
+    passende.forEach(function (f) {
+      const zeile = freundZeile(f);
+      async function aktion(funktion, werte) {
+        const antwort = await db.rpc(funktion, werte);
+        if (antwort.error) {
+          hinweis("freunde-hinweis", fehlerText(antwort.error));
+        }
+        zeigeFreunde();
+      }
+      if (f.status === "eingehend") {
+        zeile.appendChild(kleinerKnopf("Annehmen", "", function () {
+          aktion("freund_antwort", { code: f.spieler_id, annehmen: true });
+        }));
+        zeile.appendChild(kleinerKnopf("Ablehnen", "zweitrangig", function () {
+          aktion("freund_antwort", { code: f.spieler_id, annehmen: false });
+        }));
+      } else {
+        zeile.appendChild(kleinerKnopf(f.status === "freund" ? "Entfernen" : "Zurückziehen", "zweitrangig", function () {
+          if (f.status !== "freund" || confirm(f.name + " aus deiner Freundesliste entfernen?")) {
+            aktion("freund_entfernen", { code: f.spieler_id });
+          }
+        }));
+      }
+      liste.appendChild(zeile);
+    });
   });
-  zeigeBildschirm("freunde");
-}
-
-// Fügt einen Freund über seine Spieler-ID hinzu.
-// Gibt zurück: { ok: true/false, id, text } – "text" erklärt, was nicht geklappt hat.
-function fuegeFreundIdHinzu(roheId) {
-  // Kleinbuchstaben und fehlenden Bindestrich erlauben: "k7q2x9ma" → "K7Q2-X9MA"
-  let id = String(roheId || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-  id = id.slice(0, 4) + "-" + id.slice(4, 8);
-  if (!/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(id)) {
-    return { ok: false, text: "Eine Spieler-ID sieht so aus: K7Q2-X9MA" };
+  if (freunde.length === 0) {
+    liste.innerHTML = '<p class="hinweis">Du hast noch keine Freunde. Teile deinen Freundes-Link ' +
+      'oder gib die Spieler-ID eines Freundes ein.</p>';
   }
-  if (id === profil.spielerId) {
-    return { ok: false, text: "Das ist deine eigene ID 😄" };
-  }
-  if (profil.freunde.some(function (f) { return f.id === id; })) {
-    return { ok: false, text: "Diese ID hast du schon hinzugefügt." };
-  }
-  profil.freunde.push({ id: id, name: null });
-  speichereProfil();
-  return { ok: true, id: id, text: "Hinzugefügt! (Namen und Online-Status gibt es mit Supabase.)" };
 }
 
 // Freunde-Bildschirm: "+ Hinzufügen"
-function fuegeFreundHinzu() {
+async function fuegeFreundHinzu() {
   const eingabe = document.getElementById("freund-id-eingabe");
-  const ergebnis = fuegeFreundIdHinzu(eingabe.value);
-  if (ergebnis.ok) {
+  const text = await freundAnfragen(eingabe.value);
+  if (/^[✓🎉]/.test(text)) {
     eingabe.value = "";
-    zeigeFreunde(freundeZurueckZu);
   }
-  hinweis("freunde-hinweis", ergebnis.text);
+  zeigeFreunde();
+  hinweis("freunde-hinweis", text);
 }

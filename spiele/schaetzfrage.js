@@ -3,6 +3,8 @@ spiele.schaetzfrage = {
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
   beschreibung: "Tippe eine Zahl ein, die möglichst nah an der richtigen Antwort liegt. Genau richtig: 50 Punkte, bis 10 % daneben: 33, bis 25 % daneben: 17.",
   fragenProRunde: 3,
+  // Online: Wer am nächsten dran ist, bekommt die meisten Punkte (siehe mehrspieler.js)
+  mehrspieler: "naechste",
   // Name der Tabelle in Supabase, aus der die Fragen kommen
   tabelle: "schaetzfrage",
 
@@ -70,7 +72,7 @@ spiele.schaetzfrage = {
       box.textContent = text + "\n+" + punkte + " Punkte";
       knopf.replaceWith(box);
 
-      abschliessen(punkte, 3, fertig);
+      abschliessen(punkte, 3, fertig, { wert: isNaN(schaetzung) ? null : schaetzung });
     }
 
     knopf.onclick = werten;

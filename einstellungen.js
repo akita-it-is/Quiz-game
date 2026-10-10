@@ -36,6 +36,10 @@ function ladeLobbyWahl() {
 }
 
 function merkeLobbyWahl() {
+  // Mitspieler im Warteraum sehen die Einstellungen sofort
+  if (aktuelleLobby && aktuelleLobby.host) {
+    sendeLobbyInfo();
+  }
   try {
     localStorage.setItem("quiz-lobby", JSON.stringify(lobbyWahl));
   } catch (e) {

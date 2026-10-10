@@ -3,6 +3,8 @@ spiele.mathe = {
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
   beschreibung: "Rechne schnell! Tippe das Ergebnis auf dem Tastenfeld ein und drücke OK. Jede richtige Aufgabe gibt 50 Punkte.",
   fragenProRunde: 3,
+  // Online: Wer zuerst richtig antwortet, bekommt die meisten Punkte (siehe mehrspieler.js)
+  mehrspieler: "schnellste",
   // Zeit pro Aufgabe: 15 Sekunden, wenn in der Lobby 30 oder weniger eingestellt ist, sonst 20
   festeZeit: function (lobbyZeit) {
     return lobbyZeit <= 30 ? 15 : 20;

@@ -1,17 +1,11 @@
 // ===== Wirtschaft: Spielgeld ($), Erfahrung (XP), Battlepass und Shop =====
-// Achtung: Solange alles im Browser gespeichert wird, kann man hier schummeln.
-// Sicher wird es erst, wenn Supabase das Geld verwaltet.
+// Geld, Käufe und XP laufen über geschützte Funktionen in Supabase
+// (supabase/02_konto_und_wirtschaft.sql). Dort stehen auch die echten Regeln:
+//   * 1 $ pro gespielter Runde, höchstens 50 Runden pro Tag
+//   * 10 XP pro Frage + 10 XP pro richtiger Antwort, höchstens 3000 XP pro Tag
+// Wer hier im Code Zahlen ändert, ändert nur die Anzeige – nicht, was man wirklich bekommt.
 
-// Belohnung pro Spiel
-const BELOHNUNG = {
-  // Spielgeld gibt es nach dem Spiel vorerst nicht (0). Später z. B. 5 und 1 eintragen.
-  dollarProSpiel: 0,      // fürs Mitspielen
-  dollarProRichtig: 0,    // pro richtiger Antwort
-  xpProFrage: 10,         // pro beantworteter Frage
-  xpProRichtig: 10        // zusätzlich pro richtiger Antwort
-};
-
-// Battlepass (Platzhalter-Werte)
+// Battlepass (muss zu hole_battlepass in Supabase passen)
 const BATTLEPASS = {
   level: 50,          // so viele Level gibt es
   xpProLevel: 100,    // so viele XP braucht man pro Level
@@ -38,22 +32,40 @@ function zeigeDollar() {
   });
 }
 
-// Wird am Spielende aufgerufen: $ und XP gutschreiben, Text zurückgeben
-function spielBelohnung(verlauf) {
+// Wird am Spielende aufgerufen: Supabase schreibt $ und XP gut. Gibt den Text dazu zurück.
+async function spielBelohnung(verlauf, runden) {
+  if (!sitzung) {
+    return "Ohne Anmeldung gibt es keine Belohnung.";
+  }
   const richtige = verlauf.filter(function (v) { return v.punkte > 0; }).length;
-  const dollar = BELOHNUNG.dollarProSpiel + richtige * BELOHNUNG.dollarProRichtig;
-  const xp = verlauf.length * BELOHNUNG.xpProFrage + richtige * BELOHNUNG.xpProRichtig;
-
   const levelVorher = battlepassLevel();
-  profil.dollar = profil.dollar + dollar;
-  profil.xp = profil.xp + xp;
-  speichereProfil();
-
-  let text = (dollar > 0 ? "+" + dollar + " $   ·   " : "") + "+" + xp + " XP";
+  const antwort = await db.rpc("spiel_belohnung", { runden: runden, fragen: verlauf.length, richtige: richtige });
+  if (antwort.error) {
+    return "Belohnung konnte nicht gutgeschrieben werden (keine Verbindung?).";
+  }
+  uebernimmServerWerte(antwort.data.profil);
+  const dollar = antwort.data.dollar;
+  const xp = antwort.data.xp;
+  let text = dollar > 0 || xp > 0
+    ? (dollar > 0 ? "+" + dollar + " $   ·   " : "") + "+" + xp + " XP"
+    : "Heute gibt es keine Belohnung mehr – morgen wieder!";
   if (battlepassLevel() > levelVorher) {
     text = text + "\n⬆️ Battlepass-Level " + battlepassLevel() + " erreicht!";
   }
   return text;
+}
+
+// Ruft eine geschützte Supabase-Funktion auf und übernimmt das neue Profil.
+// Gibt null zurück, wenn es geklappt hat – sonst die Fehlermeldung.
+async function wirtschaftsAktion(funktion, werte) {
+  ladenStart();
+  const antwort = await db.rpc(funktion, werte || {});
+  ladenEnde();
+  if (antwort.error) {
+    return fehlerText(antwort.error);
+  }
+  uebernimmServerWerte(antwort.data);
+  return null;
 }
 
 // ===== Battlepass-Bildschirm =====
@@ -135,38 +147,33 @@ function offeneBelohnungen() {
   return offen;
 }
 
-function holeAlleBelohnungen() {
-  offeneBelohnungen().forEach(function (o) { holeBelohnung(o.level, o.leiste, true); });
-  speichereProfil();
+async function holeAlleBelohnungen() {
+  const fehler = await wirtschaftsAktion("hole_battlepass");
+  if (fehler) {
+    alert(fehler);
+  }
   zeigeBattlepass();
 }
 
-// "still" = nicht nach jeder einzelnen Belohnung neu zeichnen (bei "Alle abholen")
-function holeBelohnung(level, leiste, still) {
-  const belohnung = battlepassBelohnung(level, leiste);
-  if (belohnung.dollar) {
-    profil.dollar = profil.dollar + belohnung.dollar;
+async function holeBelohnung(level, leiste) {
+  const fehler = await wirtschaftsAktion("hole_battlepass", { nur_level: level, nur_leiste: leiste });
+  if (fehler) {
+    alert(fehler);
   }
-  if (belohnung.item && !profil.besitz.includes(belohnung.item)) {
-    profil.besitz.push(belohnung.item);
-  }
-  profil.battlepass.abgeholt[leiste].push(level);
-  if (!still) {
-    speichereProfil();
-    zeigeBattlepass();
-  }
+  zeigeBattlepass();
 }
 
-function kaufeBattlepass() {
+async function kaufeBattlepass() {
   if (profil.battlepass.premium || profil.dollar < BATTLEPASS.preis) {
     return;
   }
   if (!confirm("Premium-Battlepass für " + BATTLEPASS.preis + " $ freischalten?")) {
     return;
   }
-  profil.dollar = profil.dollar - BATTLEPASS.preis;
-  profil.battlepass.premium = true;
-  speichereProfil();
+  const fehler = await wirtschaftsAktion("kaufe_battlepass");
+  if (fehler) {
+    alert(fehler);
+  }
   zeigeBattlepass();
 }
 
@@ -292,13 +299,15 @@ function zeigeShopDetail(angebot) {
   zeigeFenster(angebot.name, box);
 }
 
-function kaufe(eintrag, name) {
+async function kaufe(eintrag, name) {
   if (profil.dollar < eintrag.preis || besitzt(eintrag)) {
     return;
   }
-  profil.dollar = profil.dollar - eintrag.preis;
-  profil.besitz.push(eintrag.id);
-  speichereProfil();
+  const fehler = await wirtschaftsAktion("kaufe", { artikel: eintrag.id });
+  if (fehler) {
+    zeigeFenster("Kauf nicht möglich", fehler);
+    return;
+  }
   zeigeFenster("🎉 Gekauft!", name + " gehört jetzt dir. Du findest es in deinem Inventar.");
   zeigeShop();
 }

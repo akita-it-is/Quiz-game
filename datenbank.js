@@ -6,6 +6,12 @@
 const SUPABASE_URL = "https://zyrfgwehsmqiyzsetafn.supabase.co";
 const SUPABASE_KEY = "sb_publishable_4Tal6QJCDf5pET2MhB7xng_bC5BKQYv";
 
+// Die Verbindung zu Supabase (Anmeldung, Profil, Freunde, Echtzeit-Lobby).
+// "supabase" kommt aus lib/supabase.js. Die Anmeldung wird im Browser gemerkt.
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+});
+
 // Lädt alle Zeilen einer Tabelle, z. B. ladeTabelle("multiple_choice").
 // Jede Zeile ist ein Objekt mit den Spaltennamen als Schlüssel, z. B. { kategorie: "sport", text: "…" }.
 async function ladeTabelle(name) {
