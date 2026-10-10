@@ -25,7 +25,7 @@ const SPRUECHE = [
   { id: "zu-leicht",   text: "Zu leicht!",                        seltenheit: "gewöhnlich", freischaltung: "start" },
   { id: "glueck",      text: "Glück gehabt …",                    seltenheit: "gewöhnlich", freischaltung: "start" },
   { id: "wusste-ich",  text: "Das wusste ich!",                   seltenheit: "selten",     freischaltung: "erfolg:richtig10" },
-  { id: "koenig",      text: "Ich bin der König der Tafelrunde!", seltenheit: "legendär",   freischaltung: "shop", preis: 300 }
+  { id: "koenig-spruch", text: "Ich bin der König der Tafelrunde!", seltenheit: "legendär",   freischaltung: "shop", preis: 300 }
 ];
 
 // Haustiere sind Insekten – nur Optik, sie sitzen neben deinem Charakter.
