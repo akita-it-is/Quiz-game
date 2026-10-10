@@ -4,8 +4,9 @@
 
 // Belohnung pro Spiel
 const BELOHNUNG = {
-  dollarProSpiel: 5,      // fürs Mitspielen
-  dollarProRichtig: 1,    // pro richtiger Antwort
+  // Spielgeld gibt es nach dem Spiel vorerst nicht (0). Später z. B. 5 und 1 eintragen.
+  dollarProSpiel: 0,      // fürs Mitspielen
+  dollarProRichtig: 0,    // pro richtiger Antwort
   xpProFrage: 10,         // pro beantworteter Frage
   xpProRichtig: 10        // zusätzlich pro richtiger Antwort
 };
@@ -48,7 +49,7 @@ function spielBelohnung(verlauf) {
   profil.xp = profil.xp + xp;
   speichereProfil();
 
-  let text = "+" + dollar + " $   ·   +" + xp + " XP";
+  let text = (dollar > 0 ? "+" + dollar + " $   ·   " : "") + "+" + xp + " XP";
   if (battlepassLevel() > levelVorher) {
     text = text + "\n⬆️ Battlepass-Level " + battlepassLevel() + " erreicht!";
   }
@@ -276,6 +277,9 @@ function zeigeShopDetail(angebot) {
   const knopf = document.createElement("button");
   if (besitzt(e)) {
     knopf.textContent = "✓ Schon in deinem Inventar";
+    knopf.disabled = true;
+  } else if (angebot.art === "Charakter" && !istAngemeldet()) {
+    knopf.textContent = "🔒 Melde dich an, um Charaktere zu kaufen";
     knopf.disabled = true;
   } else if (profil.dollar < e.preis) {
     knopf.textContent = e.preis + " $ – dir fehlen " + (e.preis - profil.dollar) + " $";

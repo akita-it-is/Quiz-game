@@ -136,6 +136,7 @@
         <input id="freund-id-eingabe" type="text" placeholder="Spieler-ID deines Freundes" maxlength="9">
         <button id="knopf-freund-hinzufuegen" class="klein">+ Hinzufügen</button>
       </div>
+      <button id="knopf-freundes-link" class="zweitrangig">🔗 Freundes-Link teilen</button>
       <p id="freunde-hinweis" class="hinweis"></p>
       <div id="freunde-liste"></div>
     </div>
@@ -245,29 +246,31 @@
 
       <h3>Spieler <span id="spieler-zahl"></span></h3>
       <div id="spieler-liste"></div>
-      <p>Max. Spieler: <strong id="max-spieler-anzeige">4</strong></p>
-      <input id="max-spieler" type="range" min="2" max="6" value="4">
 
-      <h3>Freunde einladen</h3>
-      <div id="schnell-einladen"></div>
+      <!-- Aufklappbar: Spieleinstellungen -->
+      <details class="aufklapp" open>
+        <summary>Spieleinstellungen</summary>
+        <div class="stepper-zeile"><span>Zeit pro Frage</span><div class="stepper" data-wert="sekunden"></div></div>
+        <div class="stepper-zeile"><span>Spieleranzahl</span><div class="stepper" data-wert="maxSpieler"></div></div>
+        <label class="modus-schalter">
+          <span>Feste Rundenanzahl</span>
+          <input id="modus-schalter" type="checkbox" class="schalter">
+          <span>Punkte bis Sieg</span>
+        </label>
+        <div class="reihe modus-werte">
+          <div id="block-runden" class="modus-block"><div class="stepper" data-wert="runden"></div><small>Runden</small></div>
+          <div id="block-punkte" class="modus-block"><div class="stepper" data-wert="zielPunkte"></div><small>Punkte</small></div>
+        </div>
+      </details>
 
-      <h2>Spieleinstellungen</h2>
+      <!-- Aufklappbar: Kategorien mit Casual/Schwer -->
+      <details class="aufklapp" open>
+        <summary>Kategorien</summary>
+        <p class="hinweis">Antippen wählt eine Kategorie an oder ab. Darunter stellst du Casual oder Schwer ein.</p>
+        <div id="kategorien" class="kategorie-gitter"></div>
+      </details>
 
-      <h3>Spielmodus</h3>
-      <div class="reihe">
-        <label class="auswahl"><input type="radio" name="modus" value="runden" checked> Runden</label>
-        <label class="auswahl"><input type="radio" name="modus" value="siege"> Rundensiege bis Sieg</label>
-      </div>
-      <p>Anzahl: <strong id="anzahl-anzeige">5</strong></p>
-      <input id="anzahl" type="range" min="3" max="10" value="5">
-
-      <h3>Zeit pro Frage</h3>
-      <p><strong id="zeit-anzeige">20</strong> Sekunden</p>
-      <input id="zeit" type="range" min="10" max="60" step="5" value="20">
-
-      <h3>Kategorien</h3>
-      <div id="kategorien">Kategorien werden geladen …</div>
-
+      <button id="knopf-freund-einladen" class="gross zweitrangig">👥 Freund einladen</button>
       <p class="hinweis">Mit Freunden online spielen kommt mit dem Account-System (Supabase). Bis dahin spielst du allein.</p>
       <button id="knopf-spiel-starten">Spiel starten</button>
     </div>

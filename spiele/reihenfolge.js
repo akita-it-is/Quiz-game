@@ -1,7 +1,7 @@
 spiele.reihenfolge = {
   name: "Richtige Reihenfolge",
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
-  beschreibung: "Tippe die Antworten der Reihe nach an – Platz 1 zuerst. Richtiger Platz: 2 Punkte. Steht davor die richtige Antwort: 1 Punkt.",
+  beschreibung: "Tippe die Antworten der Reihe nach an – Platz 1 zuerst. Für jeden richtigen Platz und jede richtige Nachbar-Antwort gibt es anteilig Punkte – alles richtig: 50.",
   fragenProRunde: 3,
   // CSV-Link des Tabellenblatts "reihenfolge" (gleicher Link wie bei Multiple Choice, nur andere gid)
   // Steht hier "", wird diese Spielart einfach übersprungen.

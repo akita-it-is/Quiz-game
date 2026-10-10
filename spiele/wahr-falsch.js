@@ -1,7 +1,7 @@
 spiele.wahrFalsch = {
   name: "Wahr oder Falsch",
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
-  beschreibung: "Stimmt die Aussage oder nicht? Tippe auf „Wahr“ oder „Falsch“. Jede richtige Antwort gibt 1 Punkt.",
+  beschreibung: "Stimmt die Aussage oder nicht? Tippe auf „Wahr“ oder „Falsch“. Jede richtige Antwort gibt 50 Punkte.",
   fragenProRunde: 5,
   // CSV-Link des Tabellenblatts "wahr-falsch" (gleicher Link wie bei Multiple Choice, nur andere gid)
   // Steht hier "", wird diese Spielart einfach übersprungen.

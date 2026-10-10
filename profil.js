@@ -43,6 +43,7 @@ function neuesProfil() {
     deck: { emote: [], spruch: [] }, // je bis zu 4 fürs Online-Spiel
     haustier: null,                  // id des ausgerüsteten Haustiers
     battlepass: { premium: false, abgeholt: { gratis: [], premium: [] } },
+    angemeldet: false,               // wird mit Supabase true (dann gibt es Hannes und Chiara geschenkt)
     spielerId: neueSpielerId(),      // darüber fügen dich Freunde hinzu
     freunde: []                      // [{ id, name }]
   };
@@ -78,7 +79,8 @@ let charakterAuswahl = null;   // gerade angetippter Charakter (id)
 
 function oeffneCharakter(zurueckZu) {
   charakterZurueckZu = zurueckZu;
-  charakterAuswahl = profil.charakter || null;
+  // Ein Charakter, den man (als Gast) nicht spielen darf, ist nicht vorausgewählt
+  charakterAuswahl = profil.charakter && darfCharakterSpielen(profil.charakter) ? profil.charakter : null;
   zeigeCharakter();
   zeigeBildschirm("charakter");
 }
@@ -88,7 +90,9 @@ function zeigeCharakter() {
   document.getElementById("charakter-name").textContent = profil.name;
   document.getElementById("knopf-neuer-name").hidden = !start;
   document.getElementById("charakter-hinweis").textContent = start
-    ? "Such dir deinen ersten Charakter aus – den bekommst du geschenkt! Weitere gibt es im Shop."
+    ? (istAngemeldet()
+      ? "Such dir deinen Charakter aus. Weitere gibt es im Shop."
+      : "Als Gast spielst du Hannes oder Chiara. Melde dich an, dann bekommst du beide – und kannst im Shop weitere Charaktere kaufen.")
     : "Tippe einen deiner Charaktere an, um ihn zu spielen. Darunter wählst du seinen Skin.";
 
   // Vorschau des angetippten Charakters
@@ -116,8 +120,12 @@ function zeigeCharakter() {
   // Alle Charaktere als Gitter
   const liste = document.getElementById("charakter-liste");
   liste.innerHTML = "";
-  CHARAKTERE.forEach(function (ch) {
-    const hatIhn = profil.besitz.includes(ch.id);
+  // Beim ersten Start (als Gast) gibt es nur Hund und Katze zur Auswahl
+  const auswahlListe = start && !istAngemeldet()
+    ? CHARAKTERE.filter(function (ch) { return GAST_CHARAKTERE.includes(ch.id); })
+    : CHARAKTERE;
+  auswahlListe.forEach(function (ch) {
+    const hatIhn = darfCharakterSpielen(ch.id);
     const karte = document.createElement("button");
     karte.className = "charakter-karte" + (ch.id === charakterAuswahl ? " gewaehlt" : "") +
       (!start && !hatIhn ? " gesperrt" : "");
@@ -125,7 +133,9 @@ function zeigeCharakter() {
     karte.querySelector("small").textContent = (!start && !hatIhn ? "🔒 " : "") + ch.name;
     karte.onclick = function () {
       if (!start && !hatIhn) {
-        hinweis("charakter-hinweis", ch.name + " gibt es im Shop für " + ch.preis + " $.");
+        hinweis("charakter-hinweis", istAngemeldet() || !ch.preis
+          ? ch.name + (ch.preis ? " gibt es im Shop für " + ch.preis + " $." : " gibt es mit der Anmeldung.")
+          : "Als Gast kannst du nur Hannes oder Chiara spielen. Melde dich an, um " + ch.name + " freizuschalten.");
         return;
       }
       charakterAuswahl = ch.id;

@@ -25,11 +25,11 @@ document.getElementById("knopf-google").onclick = function () {
   hinweis("start-hinweis", "Google-Anmeldung kommt bald – spiel solange als Gast.");
 };
 document.getElementById("knopf-gast").onclick = function () {
-  if (profil && profil.charakter) {
+  if (profil && profil.charakter && darfCharakterSpielen(profil.charakter)) {
     // Schon mal als Gast gespielt: direkt zur Startseite (oder in die Lobby, falls eingeladen)
     nachAnmeldung();
   } else if (profil) {
-    // Altes Profil aus der Zeit vor den Tier-Charakteren: einmal Charakter aussuchen
+    // Altes Profil (ohne Charakter oder mit einem, den Gäste nicht spielen dürfen): neu aussuchen
     oeffneCharakter("home");
   } else {
     // Zum ersten Mal: Charakter wählen, zufälliger Name
@@ -121,6 +121,10 @@ document.getElementById("knopf-id-kopieren-2").onclick = function () {
   kopiere(profil.spielerId, this);
 };
 document.getElementById("knopf-freund-hinzufuegen").onclick = fuegeFreundHinzu;
+document.getElementById("knopf-freundes-link").onclick = function () {
+  teileFreundesLink(this);
+};
+document.getElementById("knopf-freund-einladen").onclick = zeigeFreundEinladen;
 
 // --- Lobby-Code kopieren und Link teilen (Host und Mitspieler) ---
 document.getElementById("knopf-code-kopieren").onclick = function () {
@@ -142,7 +146,7 @@ document.getElementById("knopf-daily").onclick = function () {
 // --- Einstellungen ---
 document.getElementById("knopf-spiel-starten").onclick = function () {
   const einstellungen = leseEinstellungen();
-  if (einstellungen.kategorien.length === 0) {
+  if (Object.keys(einstellungen.kategorien).length === 0) {
     alert("Bitte mindestens eine Kategorie auswählen.");
     return;
   }
@@ -176,6 +180,9 @@ if (profil) {
 
 // Beim Öffnen der Seite mit dem Startbildschirm beginnen
 zeigeBildschirm("start");
+if (freundesEinladung) {
+  hinweis("start-hinweis", "Jemand möchte mit dir befreundet sein! Melde dich an oder spiel als Gast.");
+}
 if (einladungsCode) {
   hinweis("start-hinweis", "Du wurdest in die Lobby " + einladungsCode +
     " eingeladen! Melde dich an oder spiel als Gast – dann geht's direkt los.");
