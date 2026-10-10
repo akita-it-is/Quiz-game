@@ -3,12 +3,11 @@ spiele.schaetzfrage = {
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
   beschreibung: "Tippe eine Zahl ein, die möglichst nah an der richtigen Antwort liegt. Genau richtig: 50 Punkte, bis 10 % daneben: 33, bis 25 % daneben: 17.",
   fragenProRunde: 3,
-  // CSV-Link des Tabellenblatts "schaetzfrage" (gleicher Link wie bei Multiple Choice, nur andere gid)
-  // Steht hier "", wird diese Spielart einfach übersprungen.
-  fragenQuelle: "",
+  // Name der Tabelle in Supabase, aus der die Fragen kommen
+  tabelle: "schaetzfrage",
 
   // Wandelt eine Tabellenzeile in eine Frage um
-  // Spalten im Blatt: id, kategorie, text, antwort (eine Zahl), einheit (optional, z. B. "Meter"), info
+  // Spalten in der Tabelle: id, kategorie, text, antwort (eine Zahl), einheit (optional, z. B. "Meter"), info
   zeileZuFrage: function (zeile) {
     return {
       id: zeile.id,

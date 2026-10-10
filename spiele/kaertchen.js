@@ -7,12 +7,11 @@ spiele.kaertchen = {
   punkteJeTreffer: true,
   // Feste Zeit pro Frage – gilt immer, egal was in der Lobby eingestellt ist
   festeZeit: 60,
-  // CSV-Link des Tabellenblatts "kaertchen" (gleicher Link wie bei Multiple Choice, nur andere gid)
-  // Steht hier "", wird diese Spielart einfach übersprungen.
-  fragenQuelle: "",
+  // Name der Tabelle in Supabase, aus der die Fragen kommen
+  tabelle: "kaertchen",
 
   // Wandelt eine Tabellenzeile in eine Frage um
-  // Spalten im Blatt: id, kategorie, text, richtig, falsch, info
+  // Spalten in der Tabelle: id, kategorie, text, richtig, falsch, info
   // In "richtig" und "falsch" stehen mehrere Namen, getrennt mit Semikolon:
   //   Kit Harington; Emilia Clarke; Peter Dinklage
   zeileZuFrage: function (zeile) {

@@ -4,7 +4,7 @@
 //
 // Wenn neue Dateien dazukommen, hier in die Liste eintragen und VERSION um 1 erhöhen.
 
-const VERSION = 4;
+const VERSION = 6;
 const SPEICHER = "tafelrunde-v" + VERSION;
 
 const DATEIEN = [
@@ -16,13 +16,13 @@ const DATEIEN = [
   "bilder/icons/icon-maskable-512.png",
   "bildschirme.js",
   "charaktere.js",
+  "datenbank.js",
   "datenschutz.html",
   "einstellungen.js",
   "erfolge.js",
   "impressum.html",
   "index.html",
   "inventar.js",
-  "lib/papaparse.min.js",
   "lobby.js",
   "main.js",
   "manifest.webmanifest",
@@ -68,8 +68,8 @@ self.addEventListener("fetch", function (e) {
   }
   e.respondWith(
     fetch(e.request).then(function (antwort) {
-      // Eigene Dateien und die Fragen aus Google Sheets für offline merken
-      if (antwort.ok && (e.request.url.startsWith(self.location.origin) || e.request.url.includes("docs.google.com"))) {
+      // Eigene Dateien und die Fragen aus Supabase für offline merken
+      if (antwort.ok && (e.request.url.startsWith(self.location.origin) || e.request.url.includes(".supabase.co/rest/"))) {
         const kopie = antwort.clone();
         caches.open(SPEICHER).then(function (speicher) { speicher.put(e.request, kopie); });
       }
