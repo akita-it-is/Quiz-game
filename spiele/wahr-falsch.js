@@ -3,14 +3,11 @@ spiele.wahrFalsch = {
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
   beschreibung: "Stimmt die Aussage oder nicht? Tippe auf „Wahr“ oder „Falsch“. Jede richtige Antwort gibt 50 Punkte.",
   fragenProRunde: 5,
-  // Name der Tabelle in Supabase (ist sie leer, kommen die Fragen aus "fragenQuelle")
+  // Name der Tabelle in Supabase, aus der die Fragen kommen
   tabelle: "wahr_falsch",
-  // CSV-Link des Tabellenblatts "wahr-falsch" (gleicher Link wie bei Multiple Choice, nur andere gid)
-  // Steht hier "", wird diese Spielart einfach übersprungen.
-  fragenQuelle: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR8OYp4uAniqpn3dj2qzpyahA2Rg59EVSV1kLrskYtLjICQOwfTqm34D3A5aMVUbIo6bJUKCznYyieT/pub?gid=1479838760&single=true&output=csv",
 
   // Wandelt eine Tabellenzeile in eine Frage um
-  // Spalten im Blatt: id, kategorie, text, richtig (richtig = wahr oder falsch)
+  // Spalten in der Tabelle: id, kategorie, text, richtig (richtig = wahr oder falsch)
   zeileZuFrage: function (zeile) {
     const richtig = String(zeile.richtig).trim().toLowerCase();
     return {

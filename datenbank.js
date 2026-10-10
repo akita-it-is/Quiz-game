@@ -7,7 +7,7 @@ const SUPABASE_URL = "https://zyrfgwehsmqiyzsetafn.supabase.co";
 const SUPABASE_KEY = "sb_publishable_4Tal6QJCDf5pET2MhB7xng_bC5BKQYv";
 
 // Lädt alle Zeilen einer Tabelle, z. B. ladeTabelle("multiple_choice").
-// Jede Zeile ist ein Objekt mit den Spaltennamen, genau wie bei Google Sheets.
+// Jede Zeile ist ein Objekt mit den Spaltennamen als Schlüssel, z. B. { kategorie: "sport", text: "…" }.
 async function ladeTabelle(name) {
   const antwort = await fetch(SUPABASE_URL + "/rest/v1/" + name + "?select=*", {
     headers: { apikey: SUPABASE_KEY },

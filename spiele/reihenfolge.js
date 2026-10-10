@@ -3,14 +3,11 @@ spiele.reihenfolge = {
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
   beschreibung: "Tippe die Antworten der Reihe nach an – Platz 1 zuerst. Für jeden richtigen Platz und jede richtige Nachbar-Antwort gibt es anteilig Punkte – alles richtig: 50.",
   fragenProRunde: 3,
-  // Name der Tabelle in Supabase (ist sie leer, kommen die Fragen aus "fragenQuelle")
+  // Name der Tabelle in Supabase, aus der die Fragen kommen
   tabelle: "reihenfolge",
-  // CSV-Link des Tabellenblatts "reihenfolge" (gleicher Link wie bei Multiple Choice, nur andere gid)
-  // Steht hier "", wird diese Spielart einfach übersprungen.
-  fragenQuelle: "",
 
   // Wandelt eine Tabellenzeile in eine Frage um
-  // Spalten im Blatt: id, kategorie, text, antwort1 … antwort6, info
+  // Spalten in der Tabelle: id, kategorie, text, antwort1 … antwort6, info
   // antwort1 ist Platz 1, antwort2 ist Platz 2 usw. (also schon in der richtigen Reihenfolge eintragen!)
   zeileZuFrage: function (zeile) {
     const antworten = [zeile.antwort1, zeile.antwort2, zeile.antwort3,

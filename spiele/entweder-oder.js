@@ -3,16 +3,11 @@ spiele.entwederOder = {
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
   beschreibung: "Zu welcher der beiden Möglichkeiten passt die Aussage? Ein Fehler und du bist raus. Schaffst du alle 5, gibt es 50 Punkte.",
   fragenProRunde: 3,
-  // Dieses Blatt braucht keine Spalte "text" (die Überschrift entsteht aus option1 und option2)
-  ohneTextSpalte: true,
-  // Name der Tabelle in Supabase (ist sie leer, kommen die Fragen aus "fragenQuelle")
+  // Name der Tabelle in Supabase, aus der die Fragen kommen
   tabelle: "entweder_oder",
-  // CSV-Link des Tabellenblatts "entweder-oder" (gleicher Link wie bei Multiple Choice, nur andere gid)
-  // Steht hier "", wird diese Spielart einfach übersprungen.
-  fragenQuelle: "",
 
   // Wandelt eine Tabellenzeile in eine Frage um
-  // Spalten im Blatt: id, kategorie, option1, option2, aussage1 … aussage5, zu1 … zu5, info
+  // Spalten in der Tabelle: id, kategorie, option1, option2, aussage1 … aussage5, zu1 … zu5, info
   // In "zuX" steht 1 oder 2: zu welcher Option die Aussage gehört
   zeileZuFrage: function (zeile) {
     const option1 = String(zeile.option1 || "").trim();

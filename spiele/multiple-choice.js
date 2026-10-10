@@ -3,9 +3,8 @@ spiele.multipleChoice = {
   // Kurze Erklärung (erscheint vor der Runde und beim „i“ neben dem Spielnamen)
   beschreibung: "Wähle aus vier Antworten die richtige aus. Jede richtige Antwort gibt 50 Punkte.",
   fragenProRunde: 5,
-  // Name der Tabelle in Supabase (ist sie leer, kommen die Fragen aus "fragenQuelle")
+  // Name der Tabelle in Supabase, aus der die Fragen kommen
   tabelle: "multiple_choice",
-  fragenQuelle: "https://docs.google.com/spreadsheets/d/e/2PACX-1vR8OYp4uAniqpn3dj2qzpyahA2Rg59EVSV1kLrskYtLjICQOwfTqm34D3A5aMVUbIo6bJUKCznYyieT/pub?gid=0&single=true&output=csv",
 
   // Wandelt eine Tabellenzeile in eine Frage um
   zeileZuFrage: function (zeile) {

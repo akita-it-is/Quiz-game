@@ -8,7 +8,7 @@ spiele.mathe = {
     return lobbyZeit <= 30 ? 15 : 20;
   },
 
-  // Die Aufgaben werden ausgedacht, nicht aus der Tabelle gelesen
+  // Die Aufgaben werden ausgedacht, nicht aus einer Tabelle gelesen
   erzeugeFragen: function () {
     function zufall(von, bis) {
       return von + Math.floor(Math.random() * (bis - von + 1));

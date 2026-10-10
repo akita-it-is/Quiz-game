@@ -28,24 +28,11 @@ async function ladeFragen(spiel) {
     fragenSpeicher[spiel.name] = fragen;
     return fragen;
   }
-  // Zuerst aus Supabase laden – ist die Tabelle dort (noch) leer, aus Google Sheets
-  let zeilen = [];
+  // Fragen aus der Supabase-Tabelle dieser Spielart laden
+  let zeilen;
   ladenStart();
   try {
-    if (spiel.tabelle) {
-      try {
-        zeilen = await ladeTabelle(spiel.tabelle);
-      } catch (fehler) {
-        // Ohne Google-Sheets-Link gibt es keinen Ersatz – dann den Fehler zeigen
-        if (!spiel.fragenQuelle) {
-          throw fehler;
-        }
-        console.warn(fehler);
-      }
-    }
-    if (zeilen.length === 0 && spiel.fragenQuelle) {
-      zeilen = await ladeCsv(spiel);
-    }
+    zeilen = await ladeTabelle(spiel.tabelle);
   } finally {
     ladenEnde();
   }
@@ -65,29 +52,10 @@ async function ladeFragen(spiel) {
   return fragen;
 }
 
-// Lädt die Fragen aus Google Sheets (alter Weg, bis alles in Supabase ist)
-async function ladeCsv(spiel) {
-  const antwort = await fetch(spiel.fragenQuelle);
-  const text = await antwort.text();
-  const tabelle = Papa.parse(text, {
-    header: true,
-    skipEmptyLines: true,
-    // Spaltennamen ohne Leerzeichen und in Kleinbuchstaben ("Text " wird zu "text")
-    transformHeader: function (spalte) { return spalte.trim().toLowerCase(); }
-  });
-  // Ohne Spalte "text" kann keine Frage angezeigt werden
-  // (außer die Spielart braucht keine, wie "Entweder oder")
-  if (!spiel.ohneTextSpalte && (!tabelle.meta.fields || !tabelle.meta.fields.includes("text"))) {
-    throw new Error("In der Tabelle für " + spiel.name + " fehlt die Spalte \"text\". " +
-      "Gefundene Spalten: " + (tabelle.meta.fields || []).join(", "));
-  }
-  return tabelle.data;
-}
-
-// Alle Spielarten, die Fragen haben können (Supabase-Tabelle, Google-Sheets-Link
-// oder selbst erzeugte Fragen). Spielarten ohne passende Fragen werden im Spiel übersprungen.
+// Alle Spielarten, die Fragen haben können (Supabase-Tabelle oder selbst erzeugte Fragen).
+// Spielarten ohne passende Fragen (z. B. leere Tabelle) werden im Spiel übersprungen.
 function aktiveSpiele() {
-  return Object.values(spiele).filter(function (s) { return s.tabelle || s.fragenQuelle || s.erzeugeFragen; });
+  return Object.values(spiele).filter(function (s) { return s.tabelle || s.erzeugeFragen; });
 }
 
 // Wie viele Sekunden eine Frage dieser Spielart hat.
@@ -161,7 +129,7 @@ async function naechsteRunde() {
   }
   if (moeglich.length === 0) {
     throw new Error("Für die gewählten Kategorien (und Casual/Schwer) gibt es noch keine Fragen. " +
-      "Wähl andere Kategorien oder trag in der Tabelle Fragen ein.");
+      "Wähl andere Kategorien oder trag in Supabase Fragen ein.");
   }
 
   // Nicht zweimal hintereinander dieselbe Spielart (wenn es mehrere gibt)
